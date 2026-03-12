@@ -9,18 +9,26 @@ description: Get up and running with Tentacular in minutes
 - **kubectl** — configured to access your cluster
 - **Docker** — for building tentacle images
 - **Node.js 20+** — for local development
-- **Deno 1.x** — for running the engine locally
+- **Deno 2.x** — for running the engine locally
 - **Go 1.22+** — if building `tntc` from source
 
 ## Install the CLI
 
 ```bash
-# Build from source
+# Option 1: Install script (recommended)
+curl -fsSL https://raw.githubusercontent.com/randybias/tentacular/main/install.sh | sh
+
+# Option 2: Build from source
 git clone https://github.com/randybias/tentacular.git
 cd tentacular
 go build -o tntc ./cmd/tntc
-sudo mv tntc /usr/local/bin/
+install tntc ~/.local/bin/
 ```
+
+:::note
+Make sure `~/.local/bin` is on your `PATH`. You can add it by appending
+`export PATH="$HOME/.local/bin:$PATH"` to your shell profile.
+:::
 
 ## Install the MCP Server
 
