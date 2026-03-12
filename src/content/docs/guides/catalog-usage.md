@@ -3,7 +3,7 @@ title: Catalog Usage
 description: Browsing, searching, and scaffolding tentacles from the template catalog
 ---
 
-The Tentacular template catalog provides pre-built tentacle templates for common patterns like news digests, PR reviews, health monitoring, and more.
+The Tentacular template catalog provides pre-built tentacle templates for common patterns like news digests, PR reviews, health monitoring, and more. Browse the catalog online at [randybias.github.io/tentacular-catalog](https://randybias.github.io/tentacular-catalog) or use the CLI.
 
 ## Prerequisites
 
