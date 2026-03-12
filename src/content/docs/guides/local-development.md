@@ -6,9 +6,10 @@ description: Setting up a local development environment for building tentacles
 ## Prerequisites
 
 - **Go 1.22+** — for building `tntc` from source
-- **Deno 1.x** — for running the engine locally
+- **Deno 2.x** — for running the engine locally
 - **Docker** — for building container images
 - **kubectl** — configured for cluster access
+- **Helm 3.x** — for deploying Tentacular charts
 - **Node.js 20+** — for `npm`-based tooling
 
 ## Steps

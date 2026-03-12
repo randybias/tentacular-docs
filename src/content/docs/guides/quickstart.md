@@ -7,9 +7,10 @@ description: Get up and running with Tentacular in minutes
 
 - **Kubernetes cluster** — any distribution (EKS, GKE, AKS, k0s, k3s, kind)
 - **kubectl** — configured to access your cluster
+- **Helm 3.x** — for deploying Tentacular charts
 - **Docker** — for building tentacle images
 - **Node.js 20+** — for local development
-- **Deno 1.x** — for running the engine locally
+- **Deno 2.x** — for running the engine locally
 - **Go 1.22+** — if building `tntc` from source
 
 ## Install the CLI
