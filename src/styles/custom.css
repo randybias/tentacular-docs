@@ -1,0 +1,35 @@
+/* Tentacular theme — dark mode only */
+/* Derived from banner: dark background, cyan/teal primary, green secondary */
+
+:root {
+	--sl-color-accent-low: #0a2a2e;
+	--sl-color-accent: #00d4e0;
+	--sl-color-accent-high: #b0f0f4;
+	--sl-color-white: #f0f8f8;
+	--sl-color-gray-1: #d0e8e8;
+	--sl-color-gray-2: #98c0c0;
+	--sl-color-gray-3: #608888;
+	--sl-color-gray-4: #304848;
+	--sl-color-gray-5: #1a2e2e;
+	--sl-color-gray-6: #0e1e1e;
+	--sl-color-black: #080e10;
+}
+
+/* Hero banner — prevent cropping, show full image */
+.hero img {
+	border-radius: 8px;
+	object-fit: contain !important;
+	max-height: none !important;
+	width: 100%;
+	height: auto !important;
+}
+
+/* Reduce hero bottom spacing on splash page */
+.page .hero {
+	padding-bottom: 1rem !important;
+}
+
+/* Logo sizing in the nav */
+.site-title img {
+	height: 2rem;
+}

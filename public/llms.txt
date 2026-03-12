@@ -1,0 +1,55 @@
+# Tentacular Documentation
+> Agentic-friendly platform for secure, durable, autonomic workflows on Kubernetes
+
+## About
+Tentacular provides "muscle memory" for AI agents — token-efficient, hardened, reusable
+business logic deployed as TypeScript DAGs on Kubernetes. Workflows (called "tentacles")
+are authored by AI agents, secured by a contract-driven zero-trust model, and managed
+through an in-cluster MCP server.
+
+## Sections
+
+### Concepts
+- Overview: /tentacular-docs/concepts/overview/
+- Architecture: /tentacular-docs/concepts/architecture/
+- Security: /tentacular-docs/concepts/security/
+- Exoskeleton: /tentacular-docs/concepts/exoskeleton/
+- Glossary: /tentacular-docs/concepts/glossary/
+
+### Guides
+- Quickstart: /tentacular-docs/guides/quickstart/
+- Your First Tentacle: /tentacular-docs/guides/first-tentacle/
+- Exoskeleton Setup: /tentacular-docs/guides/exoskeleton-setup/
+- Catalog Usage: /tentacular-docs/guides/catalog-usage/
+- Local Development: /tentacular-docs/guides/local-development/
+- Secrets: /tentacular-docs/guides/secrets/
+- Testing: /tentacular-docs/guides/testing/
+- gVisor Setup: /tentacular-docs/guides/gvisor-setup/
+- NATS + SPIFFE Setup: /tentacular-docs/guides/nats-spiffe-setup/
+
+### Reference
+- CLI: /tentacular-docs/reference/cli/
+- Workflow Spec: /tentacular-docs/reference/workflow-spec/
+- Node Contract: /tentacular-docs/reference/node-contract/
+- MCP Tools: /tentacular-docs/reference/mcp-tools/
+- Catalog Templates: /tentacular-docs/reference/catalog/
+
+### Cookbook
+- Deploy a Tentacle: /tentacular-docs/cookbook/deploy-tentacle/
+- Debug a Tentacle: /tentacular-docs/cookbook/debug-workflow/
+- Exoskeleton Provisioning: /tentacular-docs/cookbook/exoskeleton-provisioning/
+- Update a Tentacle: /tentacular-docs/cookbook/update-tentacle/
+- Cluster Setup: /tentacular-docs/cookbook/cluster-setup/
+
+## Repositories
+- CLI + Engine: https://github.com/randybias/tentacular
+- MCP Server: https://github.com/randybias/tentacular-mcp
+- Agent Skill: https://github.com/randybias/tentacular-skill
+- Template Catalog: https://github.com/randybias/tentacular-catalog
+
+## Key Concepts
+- Tentacle: A deployed workflow — a DAG of TypeScript nodes with a contract, triggers, and config
+- Contract: Security policy declaring external dependencies, driving NetworkPolicy, Deno permissions, and secrets validation
+- Exoskeleton: Optional backing services (Postgres, NATS, RustFS) with per-tentacle isolation
+- MCP Server: In-cluster control plane accessed via Model Context Protocol
+- Agent Skill: Instruction set enabling AI agents to build, test, and deploy tentacles

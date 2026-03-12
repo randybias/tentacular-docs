@@ -1,0 +1,108 @@
+---
+title: Tentacular
+description: Agentic-friendly platform for secure, durable, autonomic workflows
+template: splash
+hero:
+  tagline: Muscle memory for AI agents — token-efficient, hardened, reusable business logic on Kubernetes.
+  actions:
+    - text: Get Started
+      link: /tentacular-docs/guides/quickstart/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/randybias/tentacular
+      variant: minimal
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import ContractDiagram from '../../components/ContractDiagram.tsx';
+
+## The Problem
+
+AI agents performing repetitive tasks burn massive amounts of tokens doing the same work over and over. Traditional workflow systems like n8n are designed for humans — GUIs, dashboards, hundreds of configuration options — and agents struggle to use them efficiently. When agents *do* build automation (shell scripts, cron jobs, arbitrary code), there's no way to constrain what they access, making prompt injection and data exfiltration trivial.
+
+The result: organizations either waste tokens on repetitive agent work, or they let agents build unsecured automation they can't trust in production.
+
+<img src="/tentacular-docs/banner.png" alt="Tentacular — Security-First Workflow Engine for Kubernetes" style="width:100%;border-radius:8px;margin:2rem 0;" />
+
+## What Tentacular Does
+
+Tentacular lets AI agents build **secure, durable, reusable workflows** — called **tentacles** — and deploy them to Kubernetes with a zero-trust security model. Think of it as enshrining AI agent work into "muscle memory": once an agent builds a tentacle, it runs autonomously, efficiently, and safely — without burning tokens on repetitive tasks.
+
+The key innovation is the **workflow contract**. A single artifact declares the DAG, its dependencies, and every external service the tentacle needs. From this contract, the platform automatically generates a "straight jacket" — Deno runtime permissions, Kubernetes NetworkPolicy, and secrets validation — enforced at runtime, network, and kernel levels simultaneously. An agent authors the contract; the platform makes it impossible to access anything undeclared.
+
+## How It Differs
+
+**From workflow systems (n8n, Argo, Tekton):** Tentacular is agent-first, not human-first. No GUI, no predefined node library. Agents code custom TypeScript DAGs with only the code they need — dramatically reducing the attack surface. In testing, the same AI news roundup took hours via n8n but about 5 minutes with Tentacular.
+
+**From CI/CD pipelines (Dagger, Tekton, ArgoCD):** Tentacles are durable business automations (news digests, PR reviews, health monitors), not ephemeral build jobs. They persist, run on schedules, respond to events, and are sealed at deployment — each runs with only the permissions its contract declares.
+
+**From AI assistants (OpenClaw):** Tentacular is an ideal *companion* to AI assistants, not a replacement. Where assistants provide open-ended flexibility, Tentacular provides hardened, governed, durable workflows. A future enterprise AI assistant could restrict workflow creation to tentacles, ensuring compliance and oversight for any workflow that touches sensitive data.
+
+## How It Works
+
+<CardGrid>
+  <Card title="Hardened Workflow Plane" icon="shield">
+    A Kubernetes-native runtime for hosting and running tentacles with defense-in-depth sandboxing at every layer.
+  </Card>
+  <Card title="Secure Control Plane" icon="setting">
+    An in-cluster MCP server for managing deployed tentacles with authenticated agent access via OAuth and SSO.
+  </Card>
+  <Card title="Template Catalog" icon="list-format">
+    A set of tentacle templates including common patterns as starting points for agents and humans.
+  </Card>
+  <Card title="Agent Skill" icon="puzzle">
+    An instruction set that allows general-purpose agents (Claude Code, Codex, Gemini) to design, build, and deploy tentacles.
+  </Card>
+</CardGrid>
+
+The process is straightforward:
+
+1. A human instructs an agent in natural language: *"Build me a weekly AI news roundup that posts to Slack"*
+2. The agent, using the [Agent Skill](/tentacular-docs/concepts/agent-skill/), designs a workflow contract — the DAG, its nodes, dependencies, and credentials
+3. It builds, tests, and deploys the tentacle to the target Kubernetes cluster
+4. The contract has a dynamic "straight jacket" applied at deployment — the tentacle can only access what was declared
+5. The tentacle runs autonomously on schedule. It can be iterated on, managed, and audited.
+
+## Example: A Tentacle Contract in Action
+
+Here's what a real contract looks like for an AI news roundup tentacle, visualized:
+
+<ContractDiagram client:load />
+
+The contract declares triggers (manual + weekly cron), the 4-node DAG (fetch → filter → rank → notify), and every external dependency (news sources, OpenAI API, Slack webhook). At deploy time, the platform generates NetworkPolicy, Deno permission flags, and secrets validation — all derived from this single artifact. Nothing undeclared is accessible.
+
+## Contract-Driven Zero-Trust Security
+
+The contract is not documentation — it is the **enforceable security policy**. From a single `contract.dependencies` block, the system automatically derives:
+
+- **Deno runtime permissions** — locked to declared hosts and ports only
+- **Kubernetes NetworkPolicy** — default-deny with per-dependency egress rules
+- **Secrets validation** — every referenced secret must exist before deployment
+- **Dynamic targets** — CIDR-based rules for runtime-resolved dependencies
+
+Zero trust at every layer: runtime (Deno on distroless — no shell, no toolchain), network (default-deny NetworkPolicy), kernel (gVisor syscall interception), and Kubernetes (non-root, read-only filesystem, no SA token, dropped capabilities).
+
+## Security and Platform Features
+
+| Feature | Benefit |
+|---------|---------|
+| Contract-driven zero-trust sandboxing | Tentacles can only access declared resources — enforced at runtime, network, and kernel levels |
+| Hardened TypeScript DAG engine with Deno | Runs on distroless Deno: no toolchain, no shell, no way to modify the code |
+| Kernel isolation using gVisor | Syscall interception makes privilege escalation extremely difficult |
+| In-cluster MCP control plane | Authenticated agent access via OAuth with SSO support |
+| Optional Exoskeleton | Multi-tenant backing services (Postgres, NATS, RustFS) with per-tentacle isolation |
+| SPIFFE-based workload identity | Identity attestation with transitive trust support |
+| Local TypeScript module cache | Supply-chain security with package pinning and air-gap readiness |
+| Tentacle template catalog | Starting points for common patterns — news digests, PR reviews, health monitors |
+
+## FAQ
+
+**Why not just have the agent write a shell script?**
+Without a workflow contract, determining what resources are safe to access is impossible. Prompt injection could modify the script to access anything. The contract creates the enforceable security boundary.
+
+**Why not use n8n or similar workflow systems?**
+Agents struggle with n8n's massive configuration surface. In testing, the same AI news roundup took hours via n8n but about 5 minutes with Tentacular. And self-hosted n8n has no equivalent security sandboxing.
+
+**Can't I just run an AI assistant in a hardened sandbox?**
+You can, but hardening restricts data access — which reduces the assistant's value. If instead the assistant deploys a verified tentacle to a trusted cluster, that tentacle can access sensitive data in a way the raw assistant cannot. The tentacle's contract makes the access pattern auditable and enforceable.

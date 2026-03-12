@@ -1,0 +1,17 @@
+{
+  "architecture": "c622d7fb2100251a51b9a1adeef27e0c818585b1",
+  "cli": "c622d7fb2100251a51b9a1adeef27e0c818585b1",
+  "workflow-spec": "eb86e530c788852ee57fa627645d5f207361c391",
+  "node-contract": "1f53aa9bd8572c02e176ce5de6ea5f1f7a9295a9",
+  "secrets": "c622d7fb2100251a51b9a1adeef27e0c818585b1",
+  "testing": "f7ea603edd7cface8c75d7e35020f8fef90195af",
+  "gvisor-setup": "d1091a40577794eecd055e38371051220f854a9e",
+  "glossary-core": "14acf98896e95d925d7e0b3085e397023d4de3b3",
+  "exoskeleton": "a47d7162b5c2582ac24cb7aa11538b80f6f86bdd",
+  "exoskeleton-deployment": "0bd6c7f6e3b35f16db82d82a161ed13f12266df2",
+  "nats-spiffe": "0bd6c7f6e3b35f16db82d82a161ed13f12266df2",
+  "glossary-mcp": "e4e3b3d238c4d376349ff8bcce90852f8a2ced9c",
+  "glossary-skill": "edf4d59511663504e975707bbea39e6f481b1902",
+  "catalog": "cdc81e1f3943254553ed78d2cbb56f6bb40f948d",
+  "mcp-tools": "aa56f058a1af8c8c6cc6a776e650f2335fbb6189"
+}

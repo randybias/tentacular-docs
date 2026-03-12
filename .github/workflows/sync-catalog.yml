@@ -1,0 +1,53 @@
+name: Sync catalog templates
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout docs
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Fetch latest catalog.yaml
+        run: |
+          curl -sL https://raw.githubusercontent.com/randybias/tentacular-catalog/main/catalog.yaml \
+            -o /tmp/catalog.yaml
+
+      - name: Regenerate catalog pages
+        run: bash scripts/gen-catalog-pages.sh /tmp/catalog.yaml
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet src/content/docs/reference/catalog/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git checkout -b sync-catalog-$(date +%Y%m%d)
+          git add src/content/docs/reference/catalog/
+          git commit -m "docs: sync catalog template pages"
+          git push -u origin HEAD
+          gh pr create \
+            --title "Sync catalog template pages" \
+            --body "Automated sync from tentacular-catalog. Review generated pages for accuracy." \
+            --label content-sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
