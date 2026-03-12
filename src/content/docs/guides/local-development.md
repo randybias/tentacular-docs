@@ -5,23 +5,28 @@ description: Setting up a local development environment for building tentacles
 
 ## Prerequisites
 
-- **Go 1.22+** — for building `tntc` from source
-- **Deno 2.x** — for running the engine locally
-- **Docker** — for building container images
-- **kubectl** — configured for cluster access
-- **Helm 3.x** — for deploying Tentacular charts
-- **Node.js 20+** — for `npm`-based tooling
+- **Deno** 2.x — for running the engine locally and tests
+- **Docker** 20+ — for building container images
+- **kubectl** 1.28+ — configured for cluster access
+- **Go 1.22+** — only if building `tntc` from source
 
 ## Steps
 
-### 1. Clone and Build the CLI
+### 1. Install the CLI
 
 ```bash
-git clone https://github.com/randybias/tentacular.git
+# Recommended: install script
+curl -fsSL https://raw.githubusercontent.com/randybias/tentacular/main/install.sh | sh
+tntc version
+```
+
+Or build from source:
+
+```bash
+git clone git@github.com:randybias/tentacular.git
 cd tentacular
-go build -o tntc ./cmd/tntc
-sudo mv tntc /usr/local/bin/
-tntc --help
+make install        # builds with version info, installs to ~/.local/bin/
+tntc version
 ```
 
 ### 2. Initialize the Workspace

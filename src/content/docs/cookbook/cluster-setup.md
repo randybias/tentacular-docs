@@ -19,13 +19,24 @@ Prepare a Kubernetes cluster to run tentacles.
 ### 1. Install the MCP Server
 
 ```bash
-helm install tentacular-mcp oci://ghcr.io/randybias/tentacular-mcp \
-  --namespace tentacular-system \
-  --create-namespace \
-  --set auth.bearerToken=$(openssl rand -hex 32)
+# Clone the MCP server repo
+git clone git@github.com:randybias/tentacular-mcp.git
+
+# Generate a token and install via Helm
+TOKEN=$(openssl rand -hex 32)
+kubectl create namespace tentacular-support
+helm install tentacular-mcp ./tentacular-mcp/charts/tentacular-mcp \
+  --namespace tentacular-system --create-namespace \
+  --set auth.token="${TOKEN}"
 ```
 
-Save the bearer token for CLI configuration.
+Save the bearer token for CLI configuration:
+
+```bash
+mkdir -p ~/.tentacular
+echo "${TOKEN}" > ~/.tentacular/mcp-token
+chmod 600 ~/.tentacular/mcp-token
+```
 
 ### 2. (Optional) Install gVisor
 

@@ -27,16 +27,20 @@ The MCP (Model Context Protocol) server is the control plane for Tentacular. It 
 ### 1. Install via Helm
 
 ```bash
+# Clone the MCP server repo
+git clone git@github.com:randybias/tentacular-mcp.git
+
 # Generate a bearer token for CLI authentication
 MCP_TOKEN=$(openssl rand -hex 32)
+mkdir -p ~/.tentacular
 echo "$MCP_TOKEN" > ~/.tentacular/mcp-token
 chmod 600 ~/.tentacular/mcp-token
 
 # Install the MCP server
-helm install tentacular-mcp oci://ghcr.io/randybias/tentacular-mcp \
-  --namespace tentacular-system \
-  --create-namespace \
-  --set auth.bearerToken="$MCP_TOKEN"
+kubectl create namespace tentacular-support
+helm install tentacular-mcp ./tentacular-mcp/charts/tentacular-mcp \
+  --namespace tentacular-system --create-namespace \
+  --set auth.token="$MCP_TOKEN"
 ```
 
 ### 2. Verify Installation
