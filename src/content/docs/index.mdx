@@ -64,13 +64,13 @@ The process is straightforward:
 4. The contract has a dynamic "straight jacket" applied at deployment — the tentacle can only access what was declared
 5. The tentacle runs autonomously on schedule. It can be iterated on, managed, and audited.
 
-## Example: A Tentacle Contract in Action
+## Example: A Tentacle Visualized
 
-Here's what a real contract looks like for an AI news roundup tentacle, visualized:
+Here's a real tentacle — an AI news roundup that fetches from 22 sources, filters, summarizes via LLM, and posts to Slack:
 
 <ContractDiagram client:load />
 
-The contract declares triggers (manual + weekly cron), the 4-node DAG (fetch → filter → rank → notify), and every external dependency (news sources, OpenAI API, Slack webhook). At deploy time, the platform generates NetworkPolicy, Deno permission flags, and secrets validation — all derived from this single artifact. Nothing undeclared is accessible.
+The tentacle declares its triggers (manual + weekly cron), the 4-node DAG (fetch → filter → rank → notify), and every external dependency in its contract (news sources, OpenAI API, Slack webhook). At deploy time, the platform derives NetworkPolicy, Deno permission flags, and secrets validation from the contract. Nothing undeclared is accessible.
 
 ## Contract-Driven Zero-Trust Security
 
