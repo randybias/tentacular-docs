@@ -29,10 +29,11 @@ Tentacular executes all nodes in a tentacle within a **single Deno process**. Th
 - Isolation provided at the **pod level**, not per-node
 
 **Security boundaries (outer to inner):**
-1. **Pod-level:** gVisor syscall interception prevents container escape
-2. **Container-level:** Kubernetes SecurityContext (non-root, read-only filesystem, dropped capabilities)
-3. **Runtime-level:** Deno permission locking (allow-list for network, filesystem, write)
-4. **Cluster-level:** Network policies, RBAC, and namespace isolation
+1. **Authorization:** MCP server evaluates owner/group/mode permissions before executing tool operations (OIDC only; bearer tokens bypass)
+2. **Pod-level:** gVisor syscall interception prevents container escape
+3. **Container-level:** Kubernetes SecurityContext (non-root, read-only filesystem, dropped capabilities)
+4. **Runtime-level:** Deno permission locking (allow-list for network, filesystem, write)
+5. **Cluster-level:** Network policies, RBAC, and namespace isolation
 
 ## Go CLI Architecture
 
@@ -158,7 +159,29 @@ Compiles to:
 | `queue` | NATS subscription triggers execution | `subject` | Implemented |
 | `webhook` | Future: gateway to NATS bridge | `path` | Roadmap |
 
-Cron schedules are stored in a `tentacular.dev/cron-schedule` annotation on the Deployment. The MCP server's internal cron scheduler fires HTTP POST to the tentacle's `/run` endpoint on schedule — no CronJob resources are created.
+Cron schedules are stored in a `tentacular.io/cron-schedule` annotation on the Deployment. The MCP server's internal cron scheduler fires HTTP POST to the tentacle's `/run` endpoint on schedule — no CronJob resources are created.
+
+## Authorization Model
+
+The MCP server enforces a POSIX-like permission model on workflow operations when OIDC authentication is active. Every deployed tentacle has three authorization attributes stored as Kubernetes annotations:
+
+- **Owner** — the OIDC-authenticated user who deployed the tentacle (`tentacular.io/owner-sub`, `tentacular.io/owner-email`, `tentacular.io/owner-name`)
+- **Group** — a named collection of users (`tentacular.io/group`)
+- **Mode** — permission string (`tentacular.io/mode`, e.g., `rwxr-x---`)
+
+Three permission types map to MCP tool operations:
+
+| Permission | Bit | Operations |
+|------------|-----|------------|
+| Read (r) | 4 | `wf_list`, `wf_status`, `wf_describe`, `wf_health`, `wf_logs`, `wf_pods`, `wf_events` |
+| Write (w) | 2 | `wf_apply`, `wf_remove`, `permissions_set` |
+| Execute (x) | 1 | `wf_run`, `wf_restart` |
+
+Mode `rwxr-x---` means: owner has read+write+execute, group has read+execute, others have no access. The default mode is `group-read` (`rwxr-x---`).
+
+**Bearer-token bypass:** When the MCP server authenticates a request via bearer token (no OIDC identity), authorization is bypassed entirely. This preserves backward compatibility for clusters without SSO.
+
+See the [Authorization guide](/tentacular-docs/guides/authorization/) for configuration details, presets, and CLI commands.
 
 ## Generated Kubernetes Resources
 
