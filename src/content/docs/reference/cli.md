@@ -11,7 +11,16 @@ The `tntc` CLI manages the full tentacle lifecycle — from scaffolding to deplo
 |---------|-------|-------------|
 | `login` | `tntc login` | Authenticate via OIDC Device Authorization Grant — displays a code, user authenticates in browser |
 | `logout` | `tntc logout` | Clear stored credentials |
-| `whoami` | `tntc whoami` | Show current authenticated identity and token status |
+| `whoami` | `tntc whoami` | Show current authenticated identity, token status, and group membership |
+
+## Permissions
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `permissions get` | `tntc permissions get <namespace> <name>` | Show owner, group, and mode for a deployed tentacle |
+| `permissions set` | `tntc permissions set <namespace> <name> [--group G] [--mode M]` | Set mode or group (owner-only) |
+| `permissions chmod` | `tntc permissions chmod <mode> <namespace> <name>` | Set permission mode (e.g., `rwxr-x---` or preset name) |
+| `permissions chgrp` | `tntc permissions chgrp <group> <namespace> <name>` | Change group assignment |
 
 ## Workflow Lifecycle
 
@@ -22,7 +31,7 @@ The `tntc` CLI manages the full tentacle lifecycle — from scaffolding to deplo
 | `dev` | `tntc dev [dir]` | Local dev server with hot-reload |
 | `test` | `tntc test [dir][/<node>]` | Run node or pipeline tests against fixtures |
 | `build` | `tntc build [dir]` | Build container image (distroless Deno base) |
-| `deploy` | `tntc deploy [dir]` | Generate K8s manifests and apply to cluster |
+| `deploy` | `tntc deploy [dir]` | Generate K8s manifests and apply to cluster. Flags: `--group <name>` sets group, `--share` sets mode to group-readable (rwxr-x---) |
 | `visualize` | `tntc visualize [dir]` | Generate Mermaid diagram of the tentacle DAG |
 
 ## Catalog Commands
@@ -111,6 +120,14 @@ tntc build --platform linux/arm64
 tntc deploy --runtime-class gvisor   # default
 tntc deploy --runtime-class ""       # disable gVisor
 tntc deploy --image reg.io/engine:v2
+tntc deploy --group my-team          # set group at deploy time
+tntc deploy --share                  # set mode to group-readable (rwxr-x---)
+
+# Permissions
+tntc permissions get my-ns my-tentacle
+tntc permissions chmod rwxr-x--- my-ns my-tentacle
+tntc permissions chmod group-read my-ns my-tentacle
+tntc permissions chgrp my-team my-ns my-tentacle
 
 # Test
 tntc test my-tentacle/fetch-data

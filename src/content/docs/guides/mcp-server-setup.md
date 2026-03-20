@@ -133,11 +133,27 @@ See [MCP Tools Reference](/tentacular-docs/reference/mcp-tools/) for the complet
 
 ### Cron Scheduling
 
-The MCP server includes an internal cron scheduler (`robfig/cron/v3`). When a tentacle is deployed with cron triggers, the schedule is stored as a `tentacular.dev/cron-schedule` annotation on the Deployment. The scheduler reads these annotations and fires HTTP POST to the tentacle's `/run` endpoint on schedule. No CronJob resources are created.
+The MCP server includes an internal cron scheduler (`robfig/cron/v3`). When a tentacle is deployed with cron triggers, the schedule is stored as a `tentacular.io/cron-schedule` annotation on the Deployment. The scheduler reads these annotations and fires HTTP POST to the tentacle's `/run` endpoint on schedule. No CronJob resources are created.
 
 ### RBAC
 
 The MCP server operates with scoped RBAC — it can only manage tentacular-related resources (Deployments, Services, ConfigMaps, Secrets, NetworkPolicies, Namespaces with specific labels). It cannot access resources outside its scope.
+
+### Authorization
+
+When OIDC authentication is configured, the MCP server enforces POSIX-like permissions on workflow operations. Authorization is enabled by default. The default mode for new deployments is `group-read` (`rwxr-x---`): owner has full access, group members can read and execute.
+
+To disable authorization entirely (kill switch), set the environment variable on the MCP server:
+
+```bash
+TENTACULAR_AUTHZ_ENABLED=false
+```
+
+Bearer-token requests always bypass authorization regardless of this setting -- permissions are only evaluated for OIDC-authenticated requests.
+
+> **Note:** The `tentacular.dev/*` annotation namespace has been replaced by `tentacular.io/*`. Existing deployments using old annotations will not have authorization enforced until redeployed.
+
+See the [Authorization guide](/tentacular-docs/guides/authorization/) for the full permission model documentation.
 
 ## Verification
 
@@ -153,5 +169,6 @@ The MCP server operates with scoped RBAC — it can only manage tentacular-relat
 | Pod not starting | Missing RBAC or configuration | Check `kubectl logs -n tentacular-system` |
 | `connection refused` | Wrong endpoint URL or pod not ready | Verify service and endpoint URL |
 | `401 Unauthorized` | Token mismatch | Ensure CLI token matches Helm `auth.bearerToken` |
-| Cron triggers not firing | Annotation missing | Check `tentacular.dev/cron-schedule` annotation on Deployment |
+| Cron triggers not firing | Annotation missing | Check `tentacular.io/cron-schedule` annotation on Deployment |
 | OIDC errors | Wrong issuer or client config | Verify OIDC settings match your identity provider |
+| `permission denied` on workflow operations | Authz mode too restrictive | Check `permissions_get`, adjust with `permissions_set`. Or set `TENTACULAR_AUTHZ_ENABLED=false` to disable |
