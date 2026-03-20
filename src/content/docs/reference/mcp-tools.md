@@ -3,7 +3,7 @@ title: MCP Tools
 description: Complete reference for Tentacular MCP server tools
 ---
 
-The Tentacular MCP server exposes 36 tools across 14 groups via the Model Context Protocol. These tools are used by the `tntc` CLI and can be called directly by AI agents.
+The Tentacular MCP server exposes 30 tools across 9 groups via the Model Context Protocol. These tools are used by the `tntc` CLI and can be called directly by AI agents.
 
 ## Namespace Management
 
@@ -56,28 +56,12 @@ The Tentacular MCP server exposes 36 tools across 14 groups via the Model Contex
 | `audit_netpol` | Verify NetworkPolicy matches contract |
 | `audit_psa` | Verify Pod Security Admission labels |
 
-## Credentials
-
-| Tool | Description |
-|------|-------------|
-| `cred_issue_token` | Issue a bearer token for MCP authentication |
-| `cred_kubeconfig` | Generate a scoped kubeconfig |
-| `cred_rotate` | Rotate credentials for a workflow |
-
 ## Exoskeleton
 
 | Tool | Description |
 |------|-------------|
 | `exo_status` | Check which backing services are available on the cluster |
 | `exo_registration` | View exoskeleton registration status for a workflow |
-
-## gVisor
-
-| Tool | Description |
-|------|-------------|
-| `gvisor_check` | Check if gVisor RuntimeClass is available |
-| `gvisor_annotate_ns` | Annotate a namespace for gVisor usage |
-| `gvisor_verify` | Verify a pod is running under gVisor |
 
 ## Permissions
 
@@ -98,7 +82,7 @@ Authorization is enforced only when OIDC authentication is active. Bearer-token 
 
 ## Tool Groups
 
-Tools are organized into 14 functional groups:
+Tools are organized into 9 functional groups:
 
 1. **Namespace** — `ns_*` (5 tools)
 2. **Workflow Lifecycle** — `wf_apply`, `wf_remove`, `wf_list`, `wf_status`, `wf_describe`, `wf_run`, `wf_restart`, `wf_logs`, `wf_pods`, `wf_events`, `wf_jobs` (11 tools)
@@ -106,11 +90,9 @@ Tools are organized into 14 functional groups:
 4. **Cluster** — `cluster_preflight`, `cluster_profile` (2 tools)
 5. **Health** — `health_cluster_summary`, `health_nodes`, `health_ns_usage` (3 tools)
 6. **Audit** — `audit_rbac`, `audit_netpol`, `audit_psa` (3 tools)
-7. **Credentials** — `cred_issue_token`, `cred_kubeconfig`, `cred_rotate` (3 tools)
-8. **Exoskeleton** — `exo_status`, `exo_registration` (2 tools)
-9. **gVisor** — `gvisor_check`, `gvisor_annotate_ns`, `gvisor_verify` (3 tools)
-10. **Permissions** — `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` (4 tools)
-11. **Module Proxy** — `proxy_status` (1 tool)
+7. **Exoskeleton** — `exo_status`, `exo_registration` (2 tools)
+8. **Permissions** — `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` (4 tools)
+9. **Module Proxy** — `proxy_status` (1 tool)
 
 ## Authentication
 

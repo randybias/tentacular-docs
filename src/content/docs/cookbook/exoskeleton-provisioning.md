@@ -98,7 +98,7 @@ export default async function run(ctx: Context, input: unknown) {
 | `exoskeleton: postgres not enabled` | Postgres not installed on cluster | Check `exo_status` and install if needed |
 | Connection refused to backing service | Service endpoint changed | Re-check exoskeleton installation |
 | Permission denied on Postgres | Role misconfigured | Undeploy and redeploy to re-run registrars |
-| Stale credentials | Service credentials rotated | Use `cred_rotate` MCP tool |
+| Stale credentials | Service credentials rotated | Undeploy and redeploy to re-run registrars |
 
 ## Cleanup
 

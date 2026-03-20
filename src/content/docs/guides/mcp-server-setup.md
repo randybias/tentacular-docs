@@ -116,7 +116,7 @@ tntc whoami --env prod
 
 ## How It Works
 
-The MCP server exposes 32+ tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
+The MCP server exposes 26+ tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
 
 | Group | Tools | Purpose |
 |-------|-------|---------|
@@ -125,9 +125,7 @@ The MCP server exposes 32+ tools via the Model Context Protocol (JSON-RPC 2.0 ov
 | Health | `wf_health`, `wf_health_ns`, `health_cluster_summary` | Monitoring |
 | Audit | `audit_rbac`, `audit_netpol`, `audit_psa` | Security validation |
 | Cluster | `cluster_preflight`, `cluster_profile` | Cluster capabilities |
-| Credentials | `cred_issue_token`, `cred_kubeconfig`, `cred_rotate` | Auth management |
 | Exoskeleton | `exo_status`, `exo_registration` | Backing services |
-| gVisor | `gvisor_check`, `gvisor_verify` | Kernel isolation |
 
 See [MCP Tools Reference](/tentacular-docs/reference/mcp-tools/) for the complete list.
 

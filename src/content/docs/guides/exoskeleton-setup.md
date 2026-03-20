@@ -126,7 +126,7 @@ tntc status my-tentacle -n my-namespace --detail
 | `exoskeleton: postgres not enabled` | Feature flag not set | Set `exoskeleton.enabled=true` in MCP Helm values |
 | Connection refused | Service not running | Check pod status in `tentacular-exoskeleton` namespace |
 | Permission denied | Registrar failed | Check MCP server logs for registrar errors |
-| Stale credentials | Credentials rotated | Use `cred_rotate` MCP tool |
+| Stale credentials | Credentials rotated | Undeploy and redeploy to re-run registrars |
 
 ## Related
 
