@@ -42,6 +42,7 @@ export default defineConfig({
 						{ label: 'Your First Tentacle', slug: 'guides/first-tentacle' },
 						{ label: 'Cluster Configuration', slug: 'guides/cluster-configuration' },
 						{ label: 'MCP Server Setup', slug: 'guides/mcp-server-setup' },
+						{ label: 'Authorization', slug: 'guides/authorization' },
 						{ label: 'Exoskeleton Setup', slug: 'guides/exoskeleton-setup' },
 						{ label: 'Catalog Usage', slug: 'guides/catalog-usage' },
 						{ label: 'Local Development', slug: 'guides/local-development' },
