@@ -81,6 +81,24 @@ Nodes cannot access public TypeScript module repositories. All imports route thr
 - Enables package pinning and version control
 - Sets the stage for air-gapped deployment in the future
 
+## Multi-Tenancy and RBAC
+
+When multiple teams share a Kubernetes cluster, contract-driven sandboxing protects tentacles from the outside world — but it doesn't control which *users* can access which *tentacles*. That's where multi-tenancy and RBAC come in.
+
+Tentacular implements a POSIX-like permission model where namespaces are directories and tentacles are files. Every namespace and every tentacle has an owner (from OIDC identity), a group (from the IdP), and a mode string (e.g., `rwxr-x---`) controlling read, write, and execute access for owner, group members, and others.
+
+### The AAA Framework
+
+- **Authentication** — OIDC via Keycloak (with brokered IdPs like Google SSO). JWT carries cryptographic identity and group membership. Bearer-token path for admin automation.
+- **Authorization** — Two-layer RBAC enforcement at the MCP server. Namespace permissions gate access to the tenant boundary; tentacle permissions gate individual resources. Five presets from `private` (owner-only) to `public-read` (visible to all tenants).
+- **Accounting** — Every deploy stamps identity (who, when, via which agent). Every permission change is auditable through Kubernetes annotations. Structured logging captures every authorization decision.
+
+### How It Integrates with Defense-in-Depth
+
+Multi-tenancy adds a **Layer 0** to the defense-in-depth model above. Before a tentacle's contract-driven sandboxing even comes into play, the RBAC layer determines whether the caller is allowed to see, modify, or execute the tentacle at all. The layers work independently — a user who passes the RBAC check still faces all five sandbox layers.
+
+For the full permission model, evaluator rules, CLI commands, and Kubernetes admin guide, see the [Multi-Tenancy and Access Control guide](/tentacular-docs/guides/authorization/).
+
 ## Audit Capabilities
 
 `tntc audit <name>` runs three security checks via the MCP server:
