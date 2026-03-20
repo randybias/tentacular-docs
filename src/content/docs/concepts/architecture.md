@@ -161,15 +161,13 @@ Compiles to:
 
 Cron schedules are stored in a `tentacular.io/cron-schedule` annotation on the Deployment. The MCP server's internal cron scheduler fires HTTP POST to the tentacle's `/run` endpoint on schedule — no CronJob resources are created.
 
-## Authorization Model
+## Multi-Tenancy and Access Control
 
-The MCP server enforces a POSIX-like permission model on workflow operations when OIDC authentication is active. Every deployed tentacle has three authorization attributes stored as Kubernetes annotations:
+Tentacular is a multi-tenant platform. Multiple teams share a single Kubernetes cluster, each owning namespaces and the tentacles deployed within them. Access control follows an AAA (Authentication, Authorization, Accounting) framework:
 
-- **Owner** — the OIDC-authenticated user who deployed the tentacle (`tentacular.io/owner-sub`, `tentacular.io/owner-email`, `tentacular.io/owner-name`)
-- **Group** — a named collection of users (`tentacular.io/group`)
-- **Mode** — permission string (`tentacular.io/mode`, e.g., `rwxr-x---`)
-
-Three permission types map to MCP tool operations:
+- **Authentication** — users authenticate via Keycloak (OIDC) with brokered identity providers (Google SSO, GitHub). JWTs carry identity (`sub`, `email`) and group membership. Bearer tokens provide an admin/automation bypass path.
+- **Authorization (RBAC)** — the MCP server enforces a POSIX-like permission model. Namespaces act as tenant boundaries (directories) and tentacles are resources within them (files). Both carry owner/group/mode attributes. The MCP server evaluates two permission layers on every OIDC request: namespace check then tentacle check.
+- **Accounting** — Kubernetes annotations record ownership, provenance, and update history on every resource. Structured slog audit logging captures every authorization decision.
 
 | Permission | Bit | Operations |
 |------------|-----|------------|
@@ -177,11 +175,9 @@ Three permission types map to MCP tool operations:
 | Write (w) | 2 | `wf_apply`, `wf_remove`, `permissions_set` |
 | Execute (x) | 1 | `wf_run`, `wf_restart` |
 
-Mode `rwxr-x---` means: owner has read+write+execute, group has read+execute, others have no access. The default mode is `group-read` (`rwxr-x---`).
-
 **Bearer-token bypass:** When the MCP server authenticates a request via bearer token (no OIDC identity), authorization is bypassed entirely. This preserves backward compatibility for clusters without SSO.
 
-See the [Authorization guide](/tentacular-docs/guides/authorization/) for configuration details, presets, and CLI commands.
+See the [Multi-Tenancy and Access Control guide](/tentacular-docs/guides/authorization/) for the full AAA framework, RBAC details, presets, and CLI commands.
 
 ## Generated Kubernetes Resources
 

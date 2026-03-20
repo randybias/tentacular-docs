@@ -1,17 +1,57 @@
 ---
-title: Authorization
-description: POSIX-like permission model for tentacle access control
+title: Multi-Tenancy and Access Control
+description: AAA framework — authentication, authorization, and accounting for multi-tenant tentacle operations
 ---
 
-Tentacular uses a POSIX-like owner/group/mode authorization model to control who can read, modify, and execute deployed tentacles. Authorization is enforced by the MCP server when OIDC authentication is active.
+Tentacular is a multi-tenant workflow platform. Multiple teams share a single Kubernetes cluster, each owning namespaces and the tentacles deployed within them. Access control follows a familiar model: authenticate users via OIDC, authorize operations through POSIX-like RBAC, and account for every action through audit annotations and structured logging.
 
-## Permission Model
+This guide covers the three pillars of the AAA (Authentication, Authorization, Accounting) framework that make multi-tenancy work.
 
-Every deployed tentacle has three authorization attributes:
+![Multi-tenancy AAA architecture showing authentication flow, RBAC enforcement, and audit trail](/tentacular-docs/diagrams/multi-tenancy-aaa.drawio.svg)
 
-- **Owner** — the OIDC-authenticated user who deployed it
-- **Group** — a named collection of users (from IdP group claims)
-- **Mode** — a 9-character rwx permission string controlling access for owner, group, and others
+## Authentication
+
+Authentication establishes *who you are*. Tentacular supports two authentication paths:
+
+### OIDC (Primary)
+
+Users and agents authenticate via Keycloak using the OIDC Device Authorization Grant. Keycloak brokers identity from external providers (Google SSO, GitHub, etc.) and issues JWTs containing:
+
+- **Subject (`sub`)** — unique user identifier used for ownership matching
+- **Email** — display identity
+- **Group membership** — used for group-based access control
+
+```bash
+# Authenticate via OIDC
+tntc login
+
+# Verify your identity
+tntc whoami
+```
+
+### Bearer Token (Admin/Automation)
+
+Service accounts and automation tools authenticate with a bearer token. Bearer-token requests **bypass all RBAC checks** — this is the admin/automation escape hatch for clusters without SSO or for break-glass operations.
+
+:::caution
+Bearer-token access is all-or-nothing. Any request authenticated via bearer token has full access to all namespaces and tentacles. Restrict token distribution to trusted automation and administrators.
+:::
+
+## Authorization (RBAC)
+
+Authorization determines *what you can do*. Tentacular implements RBAC using a POSIX filesystem permission model — the same owner/group/mode semantics that Unix administrators already know.
+
+### The Multi-Tenant Model
+
+Namespaces are tenant boundaries. Each team gets one or more namespaces, and the namespace owner controls who can operate within them. Tentacles deployed inside a namespace are further protected by their own permissions.
+
+Think of it as a filesystem:
+
+- **Namespaces = directories** — tenant boundaries with their own owner, group, and mode
+- **Tentacles = files** — individual resources with their own owner, group, and mode
+- **Both checks must pass** — just like accessing `/team/app.sh` requires directory read + file read
+
+![Namespace authorization model showing directory/file permission analogy and two-layer check flow](/tentacular-docs/diagrams/namespace-authz-model.drawio.svg)
 
 ### Permission Scopes
 
@@ -54,19 +94,14 @@ Named presets map to common access patterns. Use preset names with `permissions_
 
 The default mode for new deployments is `group-read` (`rwxr-x---`).
 
-## Bearer Token Bypass
+### Two-Layer Enforcement
 
-Authorization is only enforced for OIDC-authenticated requests. When the MCP server authenticates a request via bearer token (no OIDC identity), all permission checks are bypassed. This preserves backward compatibility for clusters without SSO configured.
+The MCP server is the single enforcement point. Every OIDC-authenticated request passes through two permission checks:
 
-## Namespace Permissions
+1. **Namespace check** — does the caller have the required permission on the namespace?
+2. **Tentacle check** — does the caller have the required permission on the tentacle?
 
-Namespaces and tentacles follow a directory/file model. Namespaces are directories; tentacles are files within them. Both use the same owner/group/mode permission model, and **both checks must pass** for an operation to succeed.
-
-![Namespace authorization model showing directory/file permission analogy and two-layer check flow](/diagrams/namespace-authz-model.drawio.svg)
-
-### The Directory/File Analogy
-
-Think of namespaces like directories in a POSIX filesystem:
+Both must pass. A user with namespace read but no tentacle read cannot describe a tentacle. A user with tentacle write but no namespace read cannot even reach the tentacle.
 
 | POSIX Operation | Tentacular Equivalent | Required Permission |
 |-----------------|----------------------|---------------------|
@@ -76,7 +111,11 @@ Think of namespaces like directories in a POSIX filesystem:
 | `./team/app.sh` | `wf_run` on tentacle | Namespace Read + Tentacle Execute |
 | `rm /team/app.sh` | `wf_remove` on tentacle | Namespace Read + Tentacle Write |
 
-### Namespace Permission Bits
+### Namespace Permissions
+
+Namespaces carry the same permission model as tentacles:
+
+#### Namespace Permission Bits
 
 | Bit | Operations |
 |-----|-----------|
@@ -84,7 +123,7 @@ Think of namespaces like directories in a POSIX filesystem:
 | Write (`w`) | `wf_apply` (create new tentacle), `ns_update`, `ns_delete` |
 | Execute (`x`) | Reserved for future use |
 
-### Namespace Ownership
+#### Namespace Ownership
 
 When `ns_create` is called with OIDC authentication, the caller becomes the namespace owner. The namespace receives the same annotations as tentacles:
 
@@ -92,42 +131,22 @@ When `ns_create` is called with OIDC authentication, the caller becomes the name
 - `tentacular.io/group` — from `--group` flag
 - `tentacular.io/mode` — from `--share`/`--mode` flag (default: `rwxr-x---`)
 
-### Default Inheritance
+#### Default Inheritance
 
 Namespaces can specify defaults for new tentacles deployed within them. When a deployer does not pass `--group` or `--share`, the namespace defaults are used:
 
 - `tentacular.io/default-mode` — default mode for new tentacles (e.g., `rwxrwx---`)
 - `tentacular.io/default-group` — default group for new tentacles (e.g., `platform-eng`)
 
-### Namespace CLI Commands
+## Accounting
 
-```bash
-# Check namespace permissions
-tntc permissions get <namespace>
+Accounting tracks *who did what and when*. Tentacular records audit data in two places: Kubernetes annotations on resources and structured slog output.
 
-# Set namespace mode
-tntc permissions set <namespace> --mode group-edit
+### Annotation-Based Audit Trail
 
-# Set namespace group
-tntc permissions set <namespace> --group platform-eng
+Authorization metadata is stored as Kubernetes annotations on Deployment resources and Namespace resources. All annotations use the `tentacular.io/` prefix.
 
-# Shortcuts
-tntc chmod <mode-or-preset> <namespace>
-tntc chgrp <group> <namespace>
-```
-
-### Namespace MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `ns_permissions_get` | Get namespace owner, group, mode, default-mode, and default-group |
-| `ns_permissions_set` | Set namespace group, mode, or share preset (namespace-owner-only) |
-
-## Annotation Schema
-
-Authorization metadata is stored as Kubernetes annotations on Deployment resources and Namespace resources. All annotations use the `tentacular.io/` prefix. The mode annotation stores the rwx string form (e.g., `rwxr-x---`).
-
-### Ownership Annotations (stamped on CREATE only)
+#### Ownership Annotations (stamped on CREATE only)
 
 These are set when a tentacle is first deployed and preserved on subsequent updates. This prevents ownership takeover on redeploy.
 
@@ -141,7 +160,7 @@ These are set when a tentacle is first deployed and preserved on subsequent upda
 | `tentacular.io/auth-provider` | Authentication provider used at deploy time (e.g., `keycloak`, `bearer-token`) |
 | `tentacular.io/created-at` | Creation timestamp (set once on first deploy) |
 
-### Audit Annotations (stamped on UPDATE)
+#### Update Tracking Annotations (stamped on UPDATE)
 
 These are updated on every subsequent deploy to track who last modified the tentacle.
 
@@ -151,7 +170,7 @@ These are updated on every subsequent deploy to track who last modified the tent
 | `tentacular.io/updated-by-sub` | Last updater's OIDC subject identifier |
 | `tentacular.io/updated-by-email` | Last updater's email address |
 
-### Provenance Annotations
+#### Provenance Annotations
 
 These annotations are always stamped on Deployments regardless of authz configuration:
 
@@ -160,6 +179,10 @@ These annotations are always stamped on Deployments regardless of authz configur
 | `tentacular.io/deployed-by` | Deployer email |
 | `tentacular.io/deployed-via` | Agent type (e.g., `cli`) |
 | `tentacular.io/deployed-at` | Deployment timestamp |
+
+### Structured Audit Logging
+
+The MCP server emits structured slog entries for every authorization decision. These logs integrate with standard Kubernetes log aggregation (Loki, Fluentd, CloudWatch, etc.) for centralized audit trails.
 
 ## Annotation Migration
 
