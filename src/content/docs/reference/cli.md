@@ -34,36 +34,61 @@ The `tntc` CLI manages the full tentacle lifecycle — from scaffolding to deplo
 | `deploy` | `tntc deploy [dir]` | Generate K8s manifests and apply to cluster. Flags: `--group <name>` sets group, `--share` sets mode to group-readable (rwxr-x---) |
 | `visualize` | `tntc visualize [dir]` | Generate Mermaid diagram of the tentacle DAG |
 
-## Catalog Commands
+## Scaffold Commands
 
 | Command | Usage | Description |
 |---------|-------|-------------|
-| `catalog list` | `tntc catalog list [--category=X] [--tag=X]` | List templates from the catalog |
-| `catalog search` | `tntc catalog search <query>` | Search templates by name, description, or tags |
-| `catalog info` | `tntc catalog info <name>` | Show full details for a template |
-| `catalog init` | `tntc catalog init <template> [name]` | Scaffold a tentacle from a catalog template |
+| `scaffold list` | `tntc scaffold list [--source=X] [--category=X] [--tag=X]` | List scaffolds from private and public sources |
+| `scaffold search` | `tntc scaffold search <query>` | Search scaffolds by name, description, or tags |
+| `scaffold info` | `tntc scaffold info <name>` | Show scaffold details and parameters |
+| `scaffold init` | `tntc scaffold init <scaffold> <name> [--params-file F] [--no-params]` | Create a tentacle from a scaffold |
+| `scaffold extract` | `tntc scaffold extract [--name N] [--private\|--public]` | Extract a scaffold from a working tentacle |
+| `scaffold sync` | `tntc scaffold sync [--force]` | Refresh public quickstarts cache |
+| `scaffold params show` | `tntc scaffold params show` | Show current parameter values for a tentacle |
+| `scaffold params validate` | `tntc scaffold params validate` | Check that parameters have non-example values |
 
 ```bash
-# List all templates (cached for 1h)
-tntc catalog list
-tntc catalog list --category monitoring
-tntc catalog list --tag beginner-friendly
-tntc catalog list --json
+# List all scaffolds (private + public)
+tntc scaffold list
+tntc scaffold list --source private
+tntc scaffold list --category monitoring
+tntc scaffold list --tag beginner-friendly
+tntc scaffold list --json
 
 # Search by keyword
-tntc catalog search digest
+tntc scaffold search "uptime monitor"
 
-# Show full template details
-tntc catalog info hn-digest
+# Show scaffold details and parameters
+tntc scaffold info uptime-tracker
 
-# Scaffold a tentacle from a template
-tntc catalog init hn-digest
-tntc catalog init hn-digest my-news-digest
-tntc catalog init hn-digest my-digest --namespace my-ns
+# Create a tentacle from a scaffold
+tntc scaffold init uptime-tracker my-uptime --no-params
+tntc scaffold init uptime-tracker my-uptime --params-file params.yaml
+tntc scaffold init hn-digest my-digest --namespace my-ns
 
-# Bypass cache
-tntc catalog list --no-cache
+# Extract a scaffold from a working tentacle
+tntc scaffold extract --name my-scaffold
+tntc scaffold extract --public
+
+# Refresh public quickstarts
+tntc scaffold sync
+tntc scaffold sync --force
+
+# Parameter inspection (run from tentacle directory)
+tntc scaffold params show
+tntc scaffold params validate
 ```
+
+### Deprecated: Catalog Commands
+
+The `tntc catalog` commands still work as deprecated aliases. They print a warning and delegate to `tntc scaffold`:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `tntc catalog list` | `tntc scaffold list` |
+| `tntc catalog search` | `tntc scaffold search` |
+| `tntc catalog info` | `tntc scaffold info` |
+| `tntc catalog init` | `tntc scaffold init` |
 
 ## Configuration
 
@@ -189,8 +214,8 @@ catalog:
 | `mcp_endpoint` | Env | Full URL to MCP server `/mcp` path |
 | `mcp_token_path` | Env | Path to bearer token file, `~` expanded |
 | `image` | Env | Engine image override |
-| `catalog.url` | Top | Base URL for the template catalog |
-| `catalog.cacheTTL` | Top | How long to cache catalog.yaml locally (default: `1h`) |
+| `catalog.url` | Top | Base URL for the scaffolds repo (public quickstarts) |
+| `catalog.cacheTTL` | Top | How long to cache scaffolds index locally (default: `1h`) |
 
 ### MCP Resolution
 
