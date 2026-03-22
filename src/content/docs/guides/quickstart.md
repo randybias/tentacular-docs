@@ -111,14 +111,14 @@ This scaffolds:
 - `nodes/hello.ts` — a starter node
 - `tests/fixtures/hello.json` — test fixture
 
-### From a Template
+### From a Scaffold
 
 ```bash
-# Browse available templates
-tntc catalog list
+# Browse available scaffolds
+tntc scaffold list
 
-# Scaffold from a template
-tntc catalog init word-counter my-first-tentacle
+# Create a tentacle from a scaffold
+tntc scaffold init word-counter my-first-tentacle --no-params
 cd my-first-tentacle
 ```
 

@@ -67,11 +67,11 @@ tntc init my-tentacle
 cd my-tentacle
 ```
 
-Or use a template:
+Or use a scaffold:
 
 ```bash
 cd ~/tentacles
-tntc catalog init word-counter my-tentacle
+tntc scaffold init word-counter my-tentacle --no-params
 cd my-tentacle
 ```
 

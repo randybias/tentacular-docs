@@ -1,81 +1,105 @@
 ---
-title: Catalog Usage
-description: Browsing, searching, and scaffolding tentacles from the template catalog
+title: Scaffold Usage
+description: Browsing, searching, and creating tentacles from scaffolds
 ---
 
-The Tentacular template catalog provides pre-built tentacle templates for common patterns like news digests, PR reviews, health monitoring, and more. Browse the catalog online at [randybias.github.io/tentacular-scaffolds](https://randybias.github.io/tentacular-scaffolds) or use the CLI.
+Tentacular scaffolds are reusable starting structures for building tentacles. They come from two sources: **public quickstarts** in the [tentacular-scaffolds](https://randybias.github.io/tentacular-scaffolds) repo and **private scaffolds** stored locally. Browse scaffolds online or use the CLI.
+
+:::note
+The `tntc catalog` commands still work as deprecated aliases. They print a deprecation warning and delegate to the corresponding `tntc scaffold` command. Use `tntc scaffold` for all new work.
+:::
 
 ## Prerequisites
 
 - `tntc` CLI installed and configured
-- Internet access (to fetch catalog index)
+- Internet access (to fetch public quickstarts)
 
 ## Steps
 
-### 1. Browse Templates
+### 1. Browse Scaffolds
 
 ```bash
-# List all templates
-tntc catalog list
+# List all scaffolds (private + public)
+tntc scaffold list
+
+# Filter by source
+tntc scaffold list --source private
+tntc scaffold list --source public
 
 # Filter by category
-tntc catalog list --category monitoring
-tntc catalog list --category reporting
+tntc scaffold list --category monitoring
+tntc scaffold list --category reporting
 
 # Filter by tag
-tntc catalog list --tag beginner-friendly
-tntc catalog list --tag llm-integration
+tntc scaffold list --tag beginner-friendly
+tntc scaffold list --tag llm-integration
 
 # JSON output for scripting
-tntc catalog list --json
+tntc scaffold list --json
 ```
 
-### 2. Search Templates
+### 2. Search Scaffolds
 
 ```bash
-tntc catalog search digest
-tntc catalog search health
-tntc catalog search pr
+tntc scaffold search digest
+tntc scaffold search "uptime monitor"
+tntc scaffold search health
 ```
 
-### 3. View Template Details
+Search matches against scaffold name, display name, description, and tags. Results from private scaffolds appear first.
+
+### 3. View Scaffold Details
 
 ```bash
-tntc catalog info hn-digest
+tntc scaffold info uptime-tracker
 ```
 
-Shows: description, category, tags, complexity, nodes, edges, triggers, config keys, required secrets.
+Shows: metadata (description, category, tags, complexity, version), parameter summary from `params.schema.yaml`, and file list.
 
-### 4. Scaffold from a Template
+### 4. Create a Tentacle from a Scaffold
 
 ```bash
-# Use template name as tentacle name
-tntc catalog init hn-digest
+# Default: prints parameter summary, creates tentacle with example values
+tntc scaffold init uptime-tracker my-uptime
 
-# Custom name
-tntc catalog init hn-digest my-news-digest
+# Copy as-is without parameter prompts
+tntc scaffold init uptime-tracker my-uptime --no-params
 
-# With namespace
-tntc catalog init hn-digest my-digest --namespace my-ns
+# Apply parameter values from a file
+tntc scaffold init uptime-tracker my-uptime --params-file params.yaml
+
+# Override output directory
+tntc scaffold init uptime-tracker my-uptime --dir ./custom-path/
+
+# Disambiguate when same name exists in private and public
+tntc scaffold init uptime-tracker my-uptime --source public
 ```
 
-### 5. Customize
+### 5. Configure Parameters
 
-After scaffolding, edit the generated files:
+After scaffolding with `--no-params`, edit `workflow.yaml` to replace example values with real values. The `params.schema.yaml` file tells you what to configure and where:
 
 ```bash
-cd my-news-digest
-# Edit workflow.yaml — adjust triggers, config
-# Edit nodes/*.ts — customize logic
-# Set up secrets
-tntc secrets init
+# See what parameters exist and their current values
+tntc scaffold params show
+
+# Check that all parameters have been configured (no example values remain)
+tntc scaffold params validate
 ```
 
-## Available Templates
+### 6. Validate and Test
 
-| Template | Category | Complexity | Description |
+```bash
+tntc validate
+tntc test
+tntc dev  # local dev server
+```
+
+## Available Scaffolds
+
+| Scaffold | Category | Complexity | Description |
 |----------|----------|------------|-------------|
-| word-counter | starter | simple | Tokenize text and count words — ideal for e2e testing |
+| word-counter | starter | simple | Tokenize text and count words -- ideal for e2e testing |
 | hn-digest | data-pipeline | moderate | Fetch and filter top Hacker News stories |
 | github-digest | reporting | moderate | GitHub repo summary digest with Slack notification |
 | pr-digest | reporting | moderate | PR summary with Claude analysis and Slack notification |
@@ -88,22 +112,28 @@ tntc secrets init
 | sep-tracker | reporting | advanced | MCP SEP proposal tracking with diff detection |
 | sep-weekly-digest | reporting | advanced | Weekly SEP activity digest with trend analysis |
 
-## Verification
+## Scaffold Search Order
 
-- `tntc catalog list` returns templates without errors
-- `tntc catalog info <name>` shows template details
-- Scaffolded tentacle passes `tntc validate`
-- `tntc test` passes with default fixtures
+When searching, the CLI checks sources in this order:
+
+1. **Private scaffolds** (`~/.tentacular/scaffolds/`) -- org-specific patterns
+2. **Public quickstarts** (`~/.tentacular/quickstarts/`) -- community scaffolds
+
+Private scaffolds take precedence when the same name exists in both sources. Use `--source` to override.
 
 ## Cache Management
 
-The catalog index is cached locally at `~/.tentacular/cache/catalog.yaml` for 1 hour. To bypass:
+Public quickstarts are cached locally at `~/.tentacular/quickstarts/`. To refresh:
 
 ```bash
-tntc catalog list --no-cache
+# Refresh from remote (respects TTL)
+tntc scaffold sync
+
+# Force refresh, bypass TTL
+tntc scaffold sync --force
 ```
 
-The cache TTL is configurable in your config:
+The cache TTL is configurable:
 
 ```yaml
 # ~/.tentacular/config.yaml
@@ -112,10 +142,19 @@ catalog:
   cacheTTL: 1h
 ```
 
+## Verification
+
+- `tntc scaffold list` returns scaffolds without errors
+- `tntc scaffold info <name>` shows scaffold details and parameters
+- Scaffolded tentacle passes `tntc validate`
+- `tntc scaffold params validate` reports no example values remaining
+- `tntc test` passes with default fixtures
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `failed to fetch catalog` | Network issue or wrong URL | Check `catalog.url` in config |
-| `template not found` | Typo or stale cache | Run with `--no-cache` |
-| Version warning on init | CLI older than template requires | Update `tntc` (warning only, not blocking) |
+| `failed to fetch scaffolds` | Network issue or wrong URL | Check `catalog.url` in config |
+| `scaffold not found` | Typo or stale cache | Run `tntc scaffold sync --force` |
+| Version warning on init | CLI older than scaffold requires | Update `tntc` (warning only, not blocking) |
+| `directory already exists` | Tentacle name already in use | Choose a different name or remove the existing directory |
