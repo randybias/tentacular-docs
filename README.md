@@ -11,7 +11,7 @@ Unified documentation site for [Tentacular](https://github.com/randybias/tentacu
 | [tentacular](https://github.com/randybias/tentacular) | Go CLI (`tntc`) + Deno workflow engine |
 | [tentacular-mcp](https://github.com/randybias/tentacular-mcp) | In-cluster MCP server (Go, Helm chart) |
 | [tentacular-skill](https://github.com/randybias/tentacular-skill) | Agent skill definition |
-| [tentacular-catalog](https://github.com/randybias/tentacular-catalog) | Workflow template catalog |
+| [tentacular-scaffolds](https://github.com/randybias/tentacular-scaffolds) | Scaffold quickstart library |
 
 ## Development
 

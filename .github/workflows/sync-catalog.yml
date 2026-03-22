@@ -21,13 +21,13 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Fetch latest catalog.yaml
+      - name: Fetch latest scaffolds-index.yaml
         run: |
-          curl -sL https://raw.githubusercontent.com/randybias/tentacular-catalog/main/catalog.yaml \
-            -o /tmp/catalog.yaml
+          curl -sL https://raw.githubusercontent.com/randybias/tentacular-scaffolds/main/scaffolds-index.yaml \
+            -o /tmp/scaffolds-index.yaml
 
       - name: Regenerate catalog pages
-        run: bash scripts/gen-catalog-pages.sh /tmp/catalog.yaml
+        run: bash scripts/gen-catalog-pages.sh /tmp/scaffolds-index.yaml
 
       - name: Check for changes
         id: diff
@@ -43,11 +43,11 @@ jobs:
         run: |
           git checkout -b sync-catalog-$(date +%Y%m%d)
           git add src/content/docs/reference/catalog/
-          git commit -m "docs: sync catalog template pages"
+          git commit -m "docs: sync scaffold quickstart pages"
           git push -u origin HEAD
           gh pr create \
-            --title "Sync catalog template pages" \
-            --body "Automated sync from tentacular-catalog. Review generated pages for accuracy." \
+            --title "Sync scaffold quickstart pages" \
+            --body "Automated sync from tentacular-scaffolds. Review generated pages for accuracy." \
             --label content-sync
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

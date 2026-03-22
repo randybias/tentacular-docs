@@ -55,7 +55,7 @@ check_file "exoskeleton-deployment" "tentacular-mcp" "docs/exoskeleton-deploymen
 check_file "nats-spiffe" "tentacular-mcp" "docs/nats-spiffe-deployment.md"
 check_file "glossary-mcp" "tentacular-mcp" "docs/glossary.md"
 check_file "glossary-skill" "tentacular-skill" "docs/glossary.md"
-check_file "catalog" "tentacular-catalog" "catalog.yaml"
+check_file "catalog" "tentacular-scaffolds" "scaffolds-index.yaml"
 check_file "mcp-tools" "tentacular-mcp" "pkg/tools/register.go"
 
 if [[ "$stale" == "true" ]]; then

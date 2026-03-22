@@ -62,11 +62,11 @@ fetch-goose ──┘                                         ↑               
 ## Usage
 
 ```bash
-tntc catalog init agent-activity-report
-tntc catalog init agent-activity-report my-activity-report
-tntc catalog info agent-activity-report
+tntc scaffold init agent-activity-report
+tntc scaffold init agent-activity-report my-activity-report
+tntc scaffold info agent-activity-report
 ```
 
 ## Source
 
-Template source: [`templates/agent-activity-report/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/agent-activity-report)
+Scaffold source: [`quickstarts/agent-activity-report/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/agent-activity-report)

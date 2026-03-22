@@ -67,11 +67,11 @@ fetch-seps → diff-seps → render-html → store-report → notify
 ## Usage
 
 ```bash
-tntc catalog init sep-tracker
-tntc catalog init sep-tracker my-sep-tracker
-tntc catalog info sep-tracker
+tntc scaffold init sep-tracker
+tntc scaffold init sep-tracker my-sep-tracker
+tntc scaffold info sep-tracker
 ```
 
 ## Source
 
-Template source: [`templates/sep-tracker/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/sep-tracker)
+Scaffold source: [`quickstarts/sep-tracker/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/sep-tracker)

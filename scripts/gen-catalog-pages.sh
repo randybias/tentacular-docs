@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generate one Markdown page per catalog template.
-# Usage: scripts/gen-catalog-pages.sh [path-to-catalog.yaml]
+# Generate one Markdown page per scaffold quickstart.
+# Usage: scripts/gen-catalog-pages.sh [path-to-scaffolds-index.yaml]
 
-CATALOG="${1:-catalog.yaml}"
+CATALOG="${1:-scaffolds-index.yaml}"
 OUTDIR="src/content/docs/reference/catalog"
 
 if ! command -v yq &>/dev/null; then
@@ -13,23 +13,23 @@ if ! command -v yq &>/dev/null; then
 fi
 
 if [[ ! -f "$CATALOG" ]]; then
-  echo "ERROR: catalog file not found: $CATALOG" >&2
+  echo "ERROR: scaffolds index file not found: $CATALOG" >&2
   exit 1
 fi
 
 mkdir -p "$OUTDIR"
 
-count=$(yq '.templates | length' "$CATALOG")
+count=$(yq '.scaffolds | length' "$CATALOG")
 
 for i in $(seq 0 $((count - 1))); do
-  name=$(yq ".templates[$i].name" "$CATALOG")
-  display_name=$(yq ".templates[$i].displayName" "$CATALOG")
-  description=$(yq ".templates[$i].description" "$CATALOG")
-  category=$(yq ".templates[$i].category" "$CATALOG")
-  complexity=$(yq ".templates[$i].complexity" "$CATALOG")
-  author=$(yq ".templates[$i].author" "$CATALOG")
-  min_version=$(yq ".templates[$i].minTentacularVersion" "$CATALOG")
-  tags=$(yq -o=json ".templates[$i].tags" "$CATALOG" | tr -d '[]"' | sed 's/,/, /g' | xargs)
+  name=$(yq ".scaffolds[$i].name" "$CATALOG")
+  display_name=$(yq ".scaffolds[$i].displayName" "$CATALOG")
+  description=$(yq ".scaffolds[$i].description" "$CATALOG")
+  category=$(yq ".scaffolds[$i].category" "$CATALOG")
+  complexity=$(yq ".scaffolds[$i].complexity" "$CATALOG")
+  author=$(yq ".scaffolds[$i].author" "$CATALOG")
+  min_version=$(yq ".scaffolds[$i].minTentacularVersion" "$CATALOG")
+  tags=$(yq -o=json ".scaffolds[$i].tags" "$CATALOG" | tr -d '[]"' | sed 's/,/, /g' | xargs)
 
   outfile="$OUTDIR/$name.md"
 
@@ -55,22 +55,22 @@ $description
 ## Usage
 
 \`\`\`bash
-# Scaffold from this template
-tntc catalog init $name
+# Scaffold from this quickstart
+tntc scaffold init $name
 
 # With custom name
-tntc catalog init $name my-custom-name
+tntc scaffold init $name my-custom-name
 
-# View template details
-tntc catalog info $name
+# View scaffold details
+tntc scaffold info $name
 \`\`\`
 
 ## Source
 
-Template source: [\`templates/$name/\`](https://github.com/randybias/tentacular-catalog/tree/main/templates/$name)
+Scaffold source: [\`quickstarts/$name/\`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/$name)
 EOPAGE
 
   echo "Generated: $outfile"
 done
 
-echo "Done: $count catalog pages generated in $OUTDIR/"
+echo "Done: $count scaffold pages generated in $OUTDIR/"

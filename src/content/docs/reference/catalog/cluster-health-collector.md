@@ -47,11 +47,11 @@ fetch-cluster-state → store-health-data
 ## Usage
 
 ```bash
-tntc catalog init cluster-health-collector
-tntc catalog init cluster-health-collector my-collector
-tntc catalog info cluster-health-collector
+tntc scaffold init cluster-health-collector
+tntc scaffold init cluster-health-collector my-collector
+tntc scaffold info cluster-health-collector
 ```
 
 ## Source
 
-Template source: [`templates/cluster-health-collector/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/cluster-health-collector)
+Scaffold source: [`quickstarts/cluster-health-collector/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/cluster-health-collector)

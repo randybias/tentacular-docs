@@ -14,7 +14,7 @@ description: "Tokenize text, count words, and produce a report -- ideal for e2e 
 
 ## Description
 
-Tokenize text, count words, and produce a report. This is the simplest tentacle template — ideal for end-to-end testing and learning the Tentacular workflow model.
+Tokenize text, count words, and produce a report. This is the simplest scaffold — ideal for end-to-end testing and learning the Tentacular workflow model.
 
 ## DAG Structure
 
@@ -49,11 +49,11 @@ None required.
 ## Usage
 
 ```bash
-tntc catalog init word-counter
-tntc catalog init word-counter my-custom-name
-tntc catalog info word-counter
+tntc scaffold init word-counter
+tntc scaffold init word-counter my-custom-name
+tntc scaffold info word-counter
 ```
 
 ## Source
 
-Template source: [`templates/word-counter/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/word-counter)
+Scaffold source: [`quickstarts/word-counter/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/word-counter)

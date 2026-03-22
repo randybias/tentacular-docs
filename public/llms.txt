@@ -45,7 +45,7 @@ through an in-cluster MCP server.
 - CLI + Engine: https://github.com/randybias/tentacular
 - MCP Server: https://github.com/randybias/tentacular-mcp
 - Agent Skill: https://github.com/randybias/tentacular-skill
-- Template Catalog: https://github.com/randybias/tentacular-catalog
+- Scaffold Library: https://github.com/randybias/tentacular-scaffolds
 
 ## Key Concepts
 - Tentacle: A deployed workflow — a DAG of TypeScript nodes with a contract, triggers, and config

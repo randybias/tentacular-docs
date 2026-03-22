@@ -52,11 +52,11 @@ fetch-prs → analyze-prs → notify-slack
 ## Usage
 
 ```bash
-tntc catalog init pr-digest
-tntc catalog init pr-digest my-pr-digest
-tntc catalog info pr-digest
+tntc scaffold init pr-digest
+tntc scaffold init pr-digest my-pr-digest
+tntc scaffold info pr-digest
 ```
 
 ## Source
 
-Template source: [`templates/pr-digest/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/pr-digest)
+Scaffold source: [`quickstarts/pr-digest/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/pr-digest)

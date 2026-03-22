@@ -174,7 +174,7 @@ environments:
     mcp_token_path: ~/.tentacular/mcp-token-prod
 
 catalog:
-  url: https://raw.githubusercontent.com/randybias/tentacular-catalog/main
+  url: https://raw.githubusercontent.com/randybias/tentacular-scaffolds/main
   cacheTTL: 1h
 ```
 

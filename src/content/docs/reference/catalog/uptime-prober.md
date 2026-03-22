@@ -57,11 +57,11 @@ probe-endpoints → analyze-results → format-report → notify-slack
 ## Usage
 
 ```bash
-tntc catalog init uptime-prober
-tntc catalog init uptime-prober my-prober
-tntc catalog info uptime-prober
+tntc scaffold init uptime-prober
+tntc scaffold init uptime-prober my-prober
+tntc scaffold info uptime-prober
 ```
 
 ## Source
 
-Template source: [`templates/uptime-prober/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/uptime-prober)
+Scaffold source: [`quickstarts/uptime-prober/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/uptime-prober)

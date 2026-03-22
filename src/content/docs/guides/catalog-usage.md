@@ -3,7 +3,7 @@ title: Catalog Usage
 description: Browsing, searching, and scaffolding tentacles from the template catalog
 ---
 
-The Tentacular template catalog provides pre-built tentacle templates for common patterns like news digests, PR reviews, health monitoring, and more. Browse the catalog online at [randybias.github.io/tentacular-catalog](https://randybias.github.io/tentacular-catalog) or use the CLI.
+The Tentacular template catalog provides pre-built tentacle templates for common patterns like news digests, PR reviews, health monitoring, and more. Browse the catalog online at [randybias.github.io/tentacular-scaffolds](https://randybias.github.io/tentacular-scaffolds) or use the CLI.
 
 ## Prerequisites
 
@@ -108,7 +108,7 @@ The cache TTL is configurable in your config:
 ```yaml
 # ~/.tentacular/config.yaml
 catalog:
-  url: https://raw.githubusercontent.com/randybias/tentacular-catalog/main
+  url: https://raw.githubusercontent.com/randybias/tentacular-scaffolds/main
   cacheTTL: 1h
 ```
 

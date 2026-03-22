@@ -45,11 +45,11 @@ None required.
 ## Usage
 
 ```bash
-tntc catalog init hn-digest
-tntc catalog init hn-digest my-news-digest
-tntc catalog info hn-digest
+tntc scaffold init hn-digest
+tntc scaffold init hn-digest my-news-digest
+tntc scaffold info hn-digest
 ```
 
 ## Source
 
-Template source: [`templates/hn-digest/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/hn-digest)
+Scaffold source: [`quickstarts/hn-digest/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/hn-digest)

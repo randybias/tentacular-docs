@@ -50,11 +50,11 @@ fetch-repos → summarize → notify
 ## Usage
 
 ```bash
-tntc catalog init github-digest
-tntc catalog init github-digest my-github-digest
-tntc catalog info github-digest
+tntc scaffold init github-digest
+tntc scaffold init github-digest my-github-digest
+tntc scaffold info github-digest
 ```
 
 ## Source
 
-Template source: [`templates/github-digest/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/github-digest)
+Scaffold source: [`quickstarts/github-digest/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/github-digest)

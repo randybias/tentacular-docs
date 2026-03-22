@@ -52,11 +52,11 @@ query-health-history → analyze-trends → send-report
 ## Usage
 
 ```bash
-tntc catalog init cluster-health-reporter
-tntc catalog init cluster-health-reporter my-reporter
-tntc catalog info cluster-health-reporter
+tntc scaffold init cluster-health-reporter
+tntc scaffold init cluster-health-reporter my-reporter
+tntc scaffold info cluster-health-reporter
 ```
 
 ## Source
 
-Template source: [`templates/cluster-health-reporter/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/cluster-health-reporter)
+Scaffold source: [`quickstarts/cluster-health-reporter/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/cluster-health-reporter)

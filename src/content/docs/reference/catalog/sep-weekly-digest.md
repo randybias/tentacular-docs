@@ -72,11 +72,11 @@ fetch-seps → store-snapshots → analyze-activity → generate-report → rend
 ## Usage
 
 ```bash
-tntc catalog init sep-weekly-digest
-tntc catalog init sep-weekly-digest my-sep-digest
-tntc catalog info sep-weekly-digest
+tntc scaffold init sep-weekly-digest
+tntc scaffold init sep-weekly-digest my-sep-digest
+tntc scaffold info sep-weekly-digest
 ```
 
 ## Source
 
-Template source: [`templates/sep-weekly-digest/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/sep-weekly-digest)
+Scaffold source: [`quickstarts/sep-weekly-digest/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/sep-weekly-digest)

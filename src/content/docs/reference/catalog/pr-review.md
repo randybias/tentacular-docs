@@ -59,11 +59,11 @@ fetch-pr ──────────┤                  ├→ synthesize �
 ## Usage
 
 ```bash
-tntc catalog init pr-review
-tntc catalog init pr-review my-pr-review
-tntc catalog info pr-review
+tntc scaffold init pr-review
+tntc scaffold init pr-review my-pr-review
+tntc scaffold info pr-review
 ```
 
 ## Source
 
-Template source: [`templates/pr-review/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/pr-review)
+Scaffold source: [`quickstarts/pr-review/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/pr-review)

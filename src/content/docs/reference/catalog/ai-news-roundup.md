@@ -59,11 +59,11 @@ fetch-feeds → filter-24h → summarize-llm → notify-slack
 ## Usage
 
 ```bash
-tntc catalog init ai-news-roundup
-tntc catalog init ai-news-roundup my-ai-roundup
-tntc catalog info ai-news-roundup
+tntc scaffold init ai-news-roundup
+tntc scaffold init ai-news-roundup my-ai-roundup
+tntc scaffold info ai-news-roundup
 ```
 
 ## Source
 
-Template source: [`templates/ai-news-roundup/`](https://github.com/randybias/tentacular-catalog/tree/main/templates/ai-news-roundup)
+Scaffold source: [`quickstarts/ai-news-roundup/`](https://github.com/randybias/tentacular-scaffolds/tree/main/quickstarts/ai-news-roundup)

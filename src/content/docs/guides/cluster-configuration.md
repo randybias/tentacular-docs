@@ -72,7 +72,7 @@ environments:
     oidc_client_secret: your-client-secret
 
 catalog:
-  url: https://raw.githubusercontent.com/randybias/tentacular-catalog/main
+  url: https://raw.githubusercontent.com/randybias/tentacular-scaffolds/main
   cacheTTL: 1h
 ```
 
