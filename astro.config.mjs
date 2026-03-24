@@ -53,6 +53,7 @@ export default defineConfig({
 						{ label: 'Testing', slug: 'guides/testing' },
 						{ label: 'gVisor Setup', slug: 'guides/gvisor-setup' },
 						{ label: 'NATS + SPIFFE Setup', slug: 'guides/nats-spiffe-setup' },
+						{ label: 'The Kraken Slack Bot', slug: 'guides/thekraken-slack-bot' },
 					],
 				},
 				{
