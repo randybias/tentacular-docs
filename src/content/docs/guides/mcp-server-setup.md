@@ -30,18 +30,16 @@ The MCP (Model Context Protocol) server is the control plane for Tentacular. It 
 # Clone the MCP server repo
 git clone git@github.com:randybias/tentacular-mcp.git
 
-# Generate a bearer token for CLI authentication
-MCP_TOKEN=$(openssl rand -hex 32)
-mkdir -p ~/.tentacular
-echo "$MCP_TOKEN" > ~/.tentacular/mcp-token
-chmod 600 ~/.tentacular/mcp-token
-
-# Install the MCP server
+# Install the MCP server (token auto-generated if not provided)
 kubectl create namespace tentacular-support
 helm install tentacular-mcp ./tentacular-mcp/charts/tentacular-mcp \
-  --namespace tentacular-system --create-namespace \
-  --set auth.token="$MCP_TOKEN"
+  --namespace tentacular-system --create-namespace
 ```
+
+> **Note:** If `auth.token` is not specified, the Helm chart auto-generates a secure 64-character token. The token is preserved across `helm upgrade`. To provide your own token, add `--set auth.token="$(openssl rand -hex 32)"`. To retrieve the auto-generated token:
+> ```bash
+> kubectl get secret -n tentacular-system tentacular-mcp-auth -o jsonpath='{.data.token}' | base64 -d
+> ```
 
 ### 2. Verify Installation
 
@@ -60,14 +58,14 @@ The MCP server exposes its API on port 8080. Access depends on your cluster setu
 
 ### 3. Configure the CLI
 
-Add the MCP endpoint to your CLI configuration:
+Add the MCP endpoint to your CLI configuration. If using OIDC, `mcp_token_path` is optional (used as admin fallback). If using bearer-token only, point it at a file containing the token:
 
 ```yaml
 # ~/.tentacular/config.yaml
 environments:
   dev:
     mcp_endpoint: http://<node-ip>:30080/mcp
-    mcp_token_path: ~/.tentacular/mcp-token
+    mcp_token_path: ~/.tentacular/mcp-token  # optional with OIDC
 ```
 
 ### 4. Test Connectivity
