@@ -13,13 +13,14 @@ The Tentacular Exoskeleton is an optional set of backing services that can be au
 
 ## How It Works
 
-1. An agent checks `exo_status` to see what backing services are available on the target cluster
+1. An agent checks `cluster_profile` or `exo_status` to see what backing services are available on the target cluster (including host, port, protocol, and availability status)
 2. The agent adds `tentacular-postgres` (or `tentacular-nats`, `tentacular-rustfs`) to the contract dependencies — no host, port, or auth configuration needed
 3. On deploy, the exoskeleton:
    - Computes a deterministic **identity** from `(namespace, workflow-name)`
    - Runs **registrars** for each declared service
    - **Enriches the contract** with connection details
    - **Injects credentials** into a K8s Secret
+   - **Patches the NetworkPolicy** with egress rules for each registered service (port and namespace selector)
 4. On undeploy, cleanup is configurable (retain data by default, destroy with explicit `--force`)
 
 This means tentacles can use databases, messaging, and object storage without the agent or human needing to provision, configure, or manage any infrastructure.

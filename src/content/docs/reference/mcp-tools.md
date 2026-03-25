@@ -43,7 +43,7 @@ The Tentacular MCP server exposes 30 tools across 9 groups via the Model Context
 | Tool | Description |
 |------|-------------|
 | `cluster_preflight` | Preflight validation: MCP connectivity, namespace creation, RuntimeClass, NetworkPolicy |
-| `cluster_profile` | Cluster capability snapshot: K8s version, CNI, storage, gVisor, extensions |
+| `cluster_profile` | Cluster capability snapshot: K8s version, CNI, storage, gVisor, extensions, exoskeleton service inventory (host, port, protocol, availability), and OIDC auth configuration |
 | `health_cluster_summary` | Overall cluster health summary |
 | `health_nodes` | Node health and resource usage |
 | `health_ns_usage` | Namespace resource usage |
@@ -62,6 +62,7 @@ The Tentacular MCP server exposes 30 tools across 9 groups via the Model Context
 |------|-------------|
 | `exo_status` | Check which backing services are available on the cluster |
 | `exo_registration` | View exoskeleton registration status for a workflow |
+| `exo_list` | List all exoskeleton registrations across namespaces |
 
 ## Permissions
 
@@ -90,7 +91,7 @@ Tools are organized into 9 functional groups:
 4. **Cluster** — `cluster_preflight`, `cluster_profile` (2 tools)
 5. **Health** — `health_cluster_summary`, `health_nodes`, `health_ns_usage` (3 tools)
 6. **Audit** — `audit_rbac`, `audit_netpol`, `audit_psa` (3 tools)
-7. **Exoskeleton** — `exo_status`, `exo_registration` (2 tools)
+7. **Exoskeleton** — `exo_status`, `exo_registration`, `exo_list` (3 tools)
 8. **Permissions** — `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` (4 tools)
 9. **Module Proxy** — `proxy_status` (1 tool)
 
