@@ -65,7 +65,7 @@ The service account token is not mounted, preventing compromised pods from authe
 
 ### Layer 5: Network Policy
 
-Default-deny ingress and egress is applied to every tentacle namespace. Egress rules are generated per-dependency from the contract. Only declared destinations are reachable. Control-plane ingress from the MCP server (10.0.0.0/8:8080) is allowed for trigger execution.
+Default-deny ingress and egress is applied to every tentacle namespace. Egress rules are generated per-dependency from the contract — for user-declared dependencies, the CLI derives the rules; for exoskeleton dependencies (`tentacular-*`), the MCP server automatically patches the NetworkPolicy with the correct egress rules at deploy time. Only declared destinations are reachable. Control-plane ingress from the MCP server is allowed for trigger execution. DNS egress to CoreDNS is always permitted.
 
 ## Secrets Model
 

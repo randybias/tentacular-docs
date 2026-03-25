@@ -87,7 +87,7 @@ The MCP server supports **dual authentication**:
 
 ### Setting Up OIDC (Optional)
 
-For deployer provenance and SSO, configure OIDC via the Helm chart:
+For deployer provenance and SSO, configure OIDC via the Helm chart. When using the `tentacular-platform` chart, the Keycloak realm and client are created automatically via `--import-realm` — no manual Keycloak configuration is needed.
 
 ```bash
 helm upgrade tentacular-mcp oci://ghcr.io/randybias/tentacular-mcp \
@@ -97,6 +97,8 @@ helm upgrade tentacular-mcp oci://ghcr.io/randybias/tentacular-mcp \
   --set auth.oidc.clientId=tentacular-mcp \
   --set auth.oidc.audience=tentacular
 ```
+
+The default Keycloak realm configuration sets access token lifetime to **12 hours**, SSO session idle timeout to 12 hours, and SSO session max lifetime to 24 hours. This allows agents to operate for extended sessions without requiring human re-authentication via the device flow.
 
 Then configure the CLI environment:
 
@@ -116,16 +118,19 @@ tntc whoami --env prod
 
 ## How It Works
 
-The MCP server exposes 26+ tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
+The MCP server exposes 31 tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
 
 | Group | Tools | Purpose |
 |-------|-------|---------|
 | Namespace | `ns_create`, `ns_get`, `ns_list`, `ns_update`, `ns_delete` | Namespace lifecycle |
 | Workflow | `wf_apply`, `wf_remove`, `wf_list`, `wf_status`, `wf_run`, etc. | Tentacle lifecycle |
-| Health | `wf_health`, `wf_health_ns`, `health_cluster_summary` | Monitoring |
+| Workflow Health | `wf_health`, `wf_health_ns` | Per-tentacle health |
+| Health | `health_cluster_summary`, `health_nodes`, `health_ns_usage` | Cluster monitoring |
 | Audit | `audit_rbac`, `audit_netpol`, `audit_psa` | Security validation |
-| Cluster | `cluster_preflight`, `cluster_profile` | Cluster capabilities |
-| Exoskeleton | `exo_status`, `exo_registration` | Backing services |
+| Cluster | `cluster_preflight`, `cluster_profile` | Cluster capabilities + exoskeleton service discovery |
+| Exoskeleton | `exo_status`, `exo_registration`, `exo_list` | Backing services |
+| Permissions | `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` | RBAC |
+| Module Proxy | `proxy_status` | ESM proxy |
 
 See [MCP Tools Reference](/tentacular-docs/reference/mcp-tools/) for the complete list.
 
