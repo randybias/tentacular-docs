@@ -18,54 +18,108 @@ The contract is not documentation — it is the enforceable security policy. An 
 
 ## Five Layers of Defense-in-Depth
 
-Security boundaries from innermost to outermost:
+Security boundaries from innermost to outermost. Layers are designed so that sidecars — additional containers for native binary capabilities — inherit pod-scoped protections (Layers 1–3) automatically, while per-container restrictions (Layers 4–5) are applied identically to every container in the pod.
 
-### Layer 1: Distroless Base Image
+```mermaid
+graph TB
+    subgraph L0 ["Layer 0 — Cluster: RBAC / OIDC AuthZ (MCP server)"]
+        subgraph L1 ["Layer 1 — Namespace: NetworkPolicy (default-deny, contract-derived egress)"]
+            subgraph L2 ["Layer 2 — Pod: gVisor sandbox (runtimeClassName: gvisor)"]
+                subgraph L3E ["Layer 3 — Engine only: Deno permission flags (--allow-net, --allow-read, ...)"]
+                    ENG["Engine\n(Deno)"]
+                end
+                subgraph L3S ["Layer 3 — Sidecar: own runtime (Python, Node, binary)"]
+                    SID["Sidecar(s)\n(native binary)"]
+                end
+                subgraph L4 ["Layer 4 — Per-container: SecurityContext\nreadOnlyRootFilesystem • no escalation • drop ALL"]
+                    subgraph L5 ["Layer 5 — Per-container: Base image\nDistroless (engine) / hardened (sidecar — user responsibility)"]
+                    end
+                end
+            end
+        end
+    end
+```
 
-Container uses `denoland/deno:distroless` — no shell, no package manager, no debugging tools. Attack surface is limited to the Deno runtime binary.
+| Layer | Scope | Mechanism | Sidecar Coverage |
+|-------|-------|-----------|-----------------|
+| 0 | Cluster | RBAC / OIDC (MCP server) | No change — sidecar containers are not accessible from outside the pod |
+| 1 | Namespace | NetworkPolicy | Covers all containers — sidecar external access requires a contract dependency |
+| 2 | Pod | gVisor (`runtimeClassName`) | `runtimeClassName` is pod-level — all containers including sidecars run under gVisor |
+| 3 | Per-container | Deno flags (engine) / own runtime (sidecar) | Engine-specific; sidecars run their own runtime but are constrained by Layers 1, 2, and 4 |
+| 4 | Per-container | SecurityContext | Identical restrictions: `readOnlyRootFilesystem`, no escalation, `drop: ALL` applied to every container |
+| 5 | Per-container | Base image | Distroless for engine; sidecar base image is user-selected — see [Sidecar Image Trust](#sidecar-image-trust) |
 
-### Layer 2: Deno Permission Locking
+### Layer 1: Distroless Base Image (Engine)
+
+The engine container uses `denoland/deno:distroless` — no shell, no package manager, no debugging tools. Attack surface is limited to the Deno runtime binary.
+
+Sidecar images are user-specified. See [Sidecar Image Trust](#sidecar-image-trust).
+
+### Layer 2: Deno Permission Locking (Engine)
 
 When a tentacle declares `contract.dependencies`, the K8s Deployment manifest overrides the ENTRYPOINT with scoped flags. The `DeriveDenoFlags()` function generates:
 
 ```
---allow-net=api.openai.com:443,hooks.slack.com:443,0.0.0.0:8080
---allow-read=/app,/var/run/secrets
---allow-write=/tmp
+--allow-net=api.openai.com:443,hooks.slack.com:443,localhost:9000,0.0.0.0:8080
+--allow-read=/app,/var/run/secrets,/shared
+--allow-write=/tmp,/shared
 --allow-env=DENO_DIR,HOME,TELEMETRY_SINK
 ```
 
-No subprocess, FFI, or unrestricted file system access beyond the declared paths.
+When sidecars are declared, `localhost:<PORT>` is automatically added to `--allow-net` for each sidecar. No subprocess, FFI, or unrestricted file system access beyond the declared paths.
+
+Sidecar containers run their own runtime (Python, Node, a compiled binary) — not Deno. Deno permission locking does not apply to them. They are constrained instead by Layers 1, 3, and 4.
 
 ### Layer 3: gVisor Sandbox
 
 Pods run with `runtimeClassName: gvisor`. gVisor intercepts syscalls via its application kernel (Sentry), preventing direct host kernel access. Even if a container escape is achieved, the attacker lands in gVisor's sandbox, not the host.
 
-gVisor provides **pod-level isolation**, not per-node isolation. All nodes in a tentacle execute within the same Deno process and share this gVisor boundary.
+gVisor provides **pod-level isolation**. All containers in the pod — engine and every sidecar — share this gVisor boundary. Sidecars inherit gVisor protection automatically with no additional configuration.
+
+:::note
+Validated in production on ARM64 (k0s v1.34.2): `linuxserver/ffmpeg` under gVisor passes all PSA restricted checks with no ENOSYS errors.
+:::
 
 ### Layer 4: Kubernetes SecurityContext
 
 ```yaml
 automountServiceAccountToken: false  # No SA token exposed
 
-securityContext:                    # Pod level
+securityContext:                    # Pod level — applies to all containers
   runAsNonRoot: true
   runAsUser: 65534                  # nobody
   seccompProfile:
     type: RuntimeDefault
 
-securityContext:                    # Container level
+securityContext:                    # Container level — applied to engine AND every sidecar
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:
     drop: ["ALL"]
 ```
 
-The service account token is not mounted, preventing compromised pods from authenticating to the K8s API. The `/tmp` emptyDir volume has `sizeLimit: 512Mi` to prevent disk exhaustion.
+The service account token is not mounted, preventing compromised pods from authenticating to the K8s API. The builder automatically provisions a per-container `/tmp` emptyDir for each sidecar (required when `readOnlyRootFilesystem: true` — many native tools write temp files).
 
 ### Layer 5: Network Policy
 
 Default-deny ingress and egress is applied to every tentacle namespace. Egress rules are generated per-dependency from the contract — for user-declared dependencies, the CLI derives the rules; for exoskeleton dependencies (`tentacular-*`), the MCP server automatically patches the NetworkPolicy with the correct egress rules at deploy time. Only declared destinations are reachable. Control-plane ingress from the MCP server is allowed for trigger execution. DNS egress to CoreDNS is always permitted.
+
+**Sidecar network access:** Sidecars can only reach external hosts if the workflow contract includes a dependency for that host. A sidecar that needs to download ML models at startup must have a corresponding entry in `contract.dependencies`. Without it, NetworkPolicy blocks the egress traffic.
+
+## Sidecar Image Trust
+
+Sidecar containers run arbitrary Docker images. Tentacular does not curate or scan these images. The security of a sidecar is only as strong as the image it runs.
+
+:::caution
+A compromised sidecar container has the same network access as the engine (per NetworkPolicy), access to the `/shared` volume, and runs under the same uid. Treat sidecar image selection with the same rigor as first-party code.
+:::
+
+Recommendations:
+
+- **Pin to a digest, not a tag.** Tags are mutable; digests are not. `image: org/ffmpeg-sidecar@sha256:abc123...` ensures the image cannot change under you.
+- **Use minimal base images.** Prefer `python:3.12-slim` + static binary over full OS images. Smaller images have fewer packages and smaller attack surfaces.
+- **Build your own production images.** Community images like `linuxserver/ffmpeg` are appropriate for development. For production, build a custom image with only the binary you need. See `scratch/native-code-research/RECOMMENDATION.md` for the ffmpeg production image recipe.
+- **Scan images before use.** Use `trivy`, `grype`, or your CI scanner on custom images before deploying.
 
 ## Secrets Model
 
