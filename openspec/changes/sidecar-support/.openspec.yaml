@@ -1,0 +1,7 @@
+name: sidecar-support
+status: proposed
+description: >
+  Add sidecar documentation to the docs site: security page update,
+  new sidecar guide, YAML schema reference, and architecture diagrams.
+artifacts:
+  - proposal
