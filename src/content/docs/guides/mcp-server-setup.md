@@ -110,7 +110,7 @@ environments:
   prod:
     mcp_endpoint: http://prod-mcp:30080/mcp
     oidc_issuer: https://keycloak.example.com/realms/tentacular
-    oidc_client_id: tentacular-cli
+    oidc_client_id: tentacular-mcp
     oidc_client_secret: your-secret
 ```
 
