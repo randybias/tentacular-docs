@@ -27,6 +27,7 @@ Tentacular executes all nodes in a tentacle within a **single Deno process**. Th
 - All nodes share the same Deno runtime and memory space
 - Parallelism achieved via async/await and `Promise.all()`, not separate processes
 - Isolation provided at the **pod level**, not per-node
+- **Sidecars** run as additional containers in the same pod, sharing the network namespace and an optional `/shared` emptyDir volume
 
 **Security boundaries (outer to inner):**
 1. **Authorization:** MCP server evaluates owner/group/mode permissions before executing tool operations (OIDC only; bearer tokens bypass)
@@ -34,6 +35,36 @@ Tentacular executes all nodes in a tentacle within a **single Deno process**. Th
 3. **Container-level:** Kubernetes SecurityContext (non-root, read-only filesystem, dropped capabilities)
 4. **Runtime-level:** Deno permission locking (allow-list for network, filesystem, write)
 5. **Cluster-level:** Network policies, RBAC, and namespace isolation
+
+### Pod Structure
+
+A workflow pod contains one engine container and zero or more sidecar containers. All containers share the pod's network namespace (localhost) and security context (gVisor, non-root, read-only root filesystem).
+
+```mermaid
+graph TB
+    subgraph pod["Workflow Pod (gVisor sandbox)"]
+        direction TB
+        subgraph engine["Engine Container"]
+            deno["Deno Runtime"]
+            dag["Workflow DAG"]
+            deno --> dag
+        end
+        subgraph sidecar1["Sidecar Container (optional)"]
+            tool["Native Binary<br/>(ffmpeg, chromium, etc.)"]
+            hook["HTTP Hook Script<br/>(:9000)"]
+            hook --> tool
+        end
+        shared["/shared (emptyDir)"]
+        engine -.->|"fetch localhost:9000"| sidecar1
+        engine -.->|"read/write"| shared
+        sidecar1 -.->|"read/write"| shared
+    end
+    kubelet["Kubelet"] -->|"health probe :9000/health"| sidecar1
+    kubelet -->|"health probe :8080/health"| engine
+    mcp["MCP Server"] -->|"POST :8080/run"| engine
+```
+
+Sidecars enable workflows to use native binaries (ffmpeg, ImageMagick, Chromium, pandoc) without building custom images. Public Docker images are wrapped with lightweight HTTP servers injected via `command:`/`args:` in `workflow.yaml`. See the [Sidecars guide](/tentacular-docs/guides/sidecars/) for details.
 
 ## Go CLI Architecture
 
@@ -189,6 +220,10 @@ See the [Multi-Tenancy and Access Control guide](/tentacular-docs/guides/authori
 | Service | `{name}` | ClusterIP, port 8080 |
 | Secret | `{name}-secrets` | Opaque, from .secrets/ or .secrets.yaml |
 | NetworkPolicy | `{name}` | Default-deny + contract-derived egress |
+| emptyDir | `/tmp` (per container) | Writable scratch space for each container |
+| emptyDir | `/shared` | Shared volume between engine and sidecars (when sidecars declared) |
+
+When sidecars are declared in `workflow.yaml`, the builder adds additional containers to the Deployment spec, each with their own `/tmp` emptyDir, resource limits, health probes on `healthPath`, and the shared `/shared` volume mount. The engine's Deno `--allow-net` flags are extended to include sidecar ports (`localhost:<port>`).
 
 ## Extension Points
 
