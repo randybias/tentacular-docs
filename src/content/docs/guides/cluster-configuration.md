@@ -102,7 +102,25 @@ tntc logout --env prod
 
 The CLI uses the OAuth 2.0 Device Authorization Grant — it displays a code, you authenticate in your browser, and the CLI polls until complete. Tokens are cached at `~/.tentacular/tokens/<env>.json` with restricted permissions (0600) and refresh automatically.
 
-Both auth methods always work — OIDC is tried first, bearer token is the fallback. OIDC enables deployer provenance tracking (who deployed what, when).
+All auth methods can coexist — OIDC is tried first, bearer token is the fallback. OIDC enables deployer provenance tracking (who deployed what, when).
+
+**Claude Code OAuth:**
+
+If using Claude Code as an MCP client, configure `.mcp.json` in your workspace root:
+
+```json
+{
+  "mcpServers": {
+    "tentacular-mcp": {
+      "type": "http",
+      "url": "http://<mcp-endpoint>/mcp",
+      "oauth": { "clientId": "tentacular-mcp" }
+    }
+  }
+}
+```
+
+When the MCP server has `externalURL` configured, Claude Code auto-discovers the authorization server via RFC 9728. On first connection, a browser opens for Keycloak login. Tokens are stored in the system keychain and refreshed automatically. See the [MCP Server Setup guide](/tentacular-docs/guides/mcp-server-setup/#claude-code-oauth) for details.
 
 ### 4. Validate the Configuration
 
@@ -175,4 +193,6 @@ tntc cluster profile --all --save
 | `connection refused` | Wrong MCP endpoint URL | Verify the MCP server is running and the URL is correct |
 | `401 Unauthorized` | Wrong or expired token | Regenerate the bearer token or run `tntc login` |
 | `OIDC flow timeout` | Browser not opening | Copy the URL manually and authenticate |
+| `invalid_scope` in Claude Code | Keycloak client missing scopes | Add all discovery scopes as optional client scopes on the Keycloak client |
+| Claude Code `Authentication Error` | MCP server not advertising auth | Set `externalURL` in Helm values, or add `authServerMetadataUrl` to `.mcp.json` oauth config |
 | `environment not found` | Typo in `--env` | Check environment names in config file |
