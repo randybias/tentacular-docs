@@ -68,7 +68,7 @@ environments:
     runtime_class: gvisor
     mcp_endpoint: http://prod-mcp.internal:30080/mcp
     oidc_issuer: https://keycloak.example.com/realms/tentacular
-    oidc_client_id: tentacular-cli
+    oidc_client_id: tentacular-mcp
     oidc_client_secret: your-client-secret
 
 catalog:
