@@ -3,7 +3,7 @@ title: Multi-Tenancy and Access Control
 description: AAA framework — authentication, authorization, and accounting for multi-tenant tentacle operations
 ---
 
-Tentacular is a multi-tenant workflow platform. Multiple teams share a single Kubernetes cluster, each owning namespaces and the tentacles deployed within them. Access control follows a familiar model: authenticate users via OIDC, authorize operations through POSIX-like RBAC, and account for every action through audit annotations and structured logging.
+Tentacular is a multi-tenant workflow platform. Multiple teams share a single Kubernetes cluster, each owning an enclave and the tentacles deployed within it. Access control follows a familiar model: authenticate users via OIDC, authorize operations through POSIX-like RBAC, and account for every action through audit annotations and structured logging.
 
 This guide covers the three pillars of the AAA (Authentication, Authorization, Accounting) framework that make multi-tenancy work.
 
@@ -19,7 +19,8 @@ Users and agents authenticate via Keycloak using the OIDC Device Authorization G
 
 - **Subject (`sub`)** — unique user identifier used for ownership matching
 - **Email** — display identity
-- **Group membership** — used for group-based access control
+
+Group membership from the IdP (Keycloak groups) is **not used for authorization**. Enclave membership is derived from Slack channel membership, not directory groups. This keeps the group model self-service and removes dependency on enterprise directory structures.
 
 ```bash
 # Authenticate via OIDC
@@ -43,23 +44,25 @@ Authorization determines *what you can do*. Tentacular implements RBAC using a P
 
 ### The Multi-Tenant Model
 
-Namespaces are tenant boundaries. Each team gets one or more namespaces, and the namespace owner controls who can operate within them. Tentacles deployed inside a namespace are further protected by their own permissions.
+Enclaves are tenant boundaries. Each team owns one enclave, and the enclave owner controls who can operate within it. Tentacles deployed inside an enclave are further protected by their own permissions.
 
 Think of it as a filesystem:
 
-- **Namespaces = directories** — tenant boundaries with their own owner, group, and mode
-- **Tentacles = files** — individual resources with their own owner, group, and mode
+- **Enclaves = directories** — tenant boundaries with their own owner, members, and mode
+- **Tentacles = files** — individual resources with their own owner and mode
 - **Both checks must pass** — just like accessing `/team/app.sh` requires directory read + file read
 
-![Namespace authorization model showing directory/file permission analogy and two-layer check flow](/tentacular-docs/diagrams/namespace-authz-model.drawio.svg)
+![Enclave authorization model showing directory/file permission analogy and two-layer check flow](/tentacular-docs/diagrams/namespace-authz-model.drawio.svg)
 
 ### Permission Scopes
 
-| Scope | Who | Example |
-|-------|-----|---------|
-| Owner | The user identified by `tentacular.io/owner-sub` | The person who ran `tntc deploy` |
-| Group | Members of the group in `tentacular.io/group` | A team like `platform-eng` |
-| Others | Any other authenticated user | Anyone else with OIDC access |
+| Scope | Who | How Determined |
+|-------|-----|----------------|
+| Owner | The user identified by `tentacular.io/owner-sub` | The person who provisioned the enclave or deployed the tentacle |
+| Member | Registered enclave members | Users who joined the Slack channel and completed OIDC sign-in |
+| Other | Any other authenticated user | Authenticated users who are not the owner or a registered member |
+
+IdP group membership (Keycloak groups, LDAP groups) is not used for authorization. The `tentacular.io/group` annotation is deprecated — enclave membership is the authorization primitive.
 
 ### Permission Types
 
@@ -71,72 +74,76 @@ Think of it as a filesystem:
 
 ### Reading Mode Values
 
-Mode is stored as a 9-character rwx string (e.g., `rwxr-x---`). Each group of three characters represents one scope (owner, group, others):
+Mode is stored as a 9-character rwx string (e.g., `rwxrwx---`). Each group of three characters represents one scope (owner, member, other):
 
-| Mode String | Owner | Group | Others | Meaning |
-|-------------|-------|-------|--------|---------|
-| `rwxr-x---` | rwx | r-x | --- | Owner full access, group can read and execute, others blocked |
+| Mode String | Owner | Member | Other | Meaning |
+|-------------|-------|--------|-------|---------|
+| `rwxr-x---` | rwx | r-x | --- | Owner full access, members can read and run, others blocked |
 | `rwx------` | rwx | --- | --- | Owner only — private |
-| `rwxrwx---` | rwx | rwx | --- | Owner and group have full access |
-| `rwx--x---` | rwx | --x | --- | Owner full access, group can execute only |
+| `rwxrwx---` | rwx | rwx | --- | Owner and members have full access (default) |
+| `rwx--x---` | rwx | --x | --- | Owner full access, members can execute only |
+| `rwxrwxr--` | rwx | rwx | r-- | Owner and members full access, others can view |
+| `rwxrwxr-x` | rwx | rwx | r-x | Owner and members full access, others can view and run |
 
 ### Presets
 
-Named presets map to common access patterns. Use preset names with `permissions_set` and `tntc permissions chmod`:
+Named presets map to common access patterns. Use preset names with `permissions_set` and `tntc permissions chmod`. The presets reflect enclave membership (member = registered enclave member, other = unenrolled authenticated user):
 
 | Preset | Mode String | Use Case |
 |--------|-------------|----------|
-| `private` | `rwx------` | Only the owner can access the tentacle |
-| `group-read` | `rwxr-x---` | Team members can view status and run the tentacle (default) |
-| `group-run` | `rwx--x---` | Team members can only execute, not inspect |
-| `group-edit` | `rwxrwx---` | Team members have full access |
-| `public-read` | `rwxr--r--` | Anyone can view, only owner can modify or run |
+| `private` | `rwx------` | Owner only — personal or sensitive work |
+| `member-read` | `rwxr-x---` | Members can view and run; only owner deploys |
+| `member-run` | `rwx--x---` | Members can only execute, not inspect |
+| `member-edit` | `rwxrwx---` | **Default** — full collaboration within the team |
+| `open-read` | `rwxrwxr--` | Visitors (non-members) can view; members have full access |
+| `open-run` | `rwxrwxr-x` | Visitors can view and trigger; members have full access |
 
-The default mode for new deployments is `group-read` (`rwxr-x---`).
+The default mode for new enclaves and new tentacle deployments is `member-edit` (`rwxrwx---`).
 
 ### Two-Layer Enforcement
 
 The MCP server is the single enforcement point. Every OIDC-authenticated request passes through two permission checks:
 
-1. **Namespace check** — does the caller have the required permission on the namespace?
+1. **Enclave check** — does the caller have the required permission on the enclave?
 2. **Tentacle check** — does the caller have the required permission on the tentacle?
 
-Both must pass. A user with namespace read but no tentacle read cannot describe a tentacle. A user with tentacle write but no namespace read cannot even reach the tentacle.
+Both must pass. A user with enclave read but no tentacle read cannot describe a tentacle. A user with tentacle write but no enclave read cannot even reach the tentacle. The **enclave owner** is a superuser within their enclave — they bypass tentacle-level checks and can perform any operation on any tentacle.
 
 | POSIX Operation | Tentacular Equivalent | Required Permission |
 |-----------------|----------------------|---------------------|
-| `ls /team/` | `wf_list` in namespace | Namespace Read |
-| `touch /team/app.sh` | `wf_apply` (create tentacle) | Namespace Write |
-| `cat /team/app.sh` | `wf_describe` on tentacle | Namespace Read + Tentacle Read |
-| `./team/app.sh` | `wf_run` on tentacle | Namespace Read + Tentacle Execute |
-| `rm /team/app.sh` | `wf_remove` on tentacle | Namespace Read + Tentacle Write |
+| `ls /team/` | `wf_list` in enclave | Enclave Read |
+| `touch /team/app.sh` | `wf_apply` (create tentacle) | Enclave Write |
+| `cat /team/app.sh` | `wf_describe` on tentacle | Enclave Read + Tentacle Read |
+| `./team/app.sh` | `wf_run` on tentacle | Enclave Read + Tentacle Execute |
+| `rm /team/app.sh` | `wf_remove` on tentacle | Enclave Read + Tentacle Write |
 
-### Namespace Permissions
+### Enclave Permissions
 
-Namespaces carry the same permission model as tentacles:
+Enclaves carry the same permission model as tentacles and serve as the tenant boundary:
 
-#### Namespace Permission Bits
+#### Enclave Permission Bits
 
 | Bit | Operations |
 |-----|-----------|
-| Read (`r`) | `wf_list`, `wf_health_ns`, `wf_pods`, `wf_logs`, `wf_events`, `wf_jobs` (namespace-scoped) |
-| Write (`w`) | `wf_apply` (create new tentacle), `ns_update`, `ns_delete` |
-| Execute (`x`) | Reserved for future use |
+| Read (`r`) | `wf_list`, `enclave_info`, `wf_health`, `wf_pods`, `wf_logs`, `wf_events` |
+| Write (`w`) | `wf_apply` (deploy new tentacle), `enclave_sync` settings |
+| Execute (`x`) | Run tentacles within the enclave |
 
-#### Namespace Ownership
+#### Enclave Ownership and Membership
 
-When `ns_create` is called with OIDC authentication, the caller becomes the namespace owner. The namespace receives the same annotations as tentacles:
+When `enclave_provision` is called, the caller becomes the enclave owner. The enclave namespace receives annotations:
 
 - `tentacular.io/owner-sub`, `owner-email`, `owner-name` — from OIDC identity
-- `tentacular.io/group` — from `--group` flag
-- `tentacular.io/mode` — from `--share`/`--mode` flag (default: `rwxr-x---`)
+- `tentacular.io/enclave-members` — JSON array of registered member emails
+- `tentacular.io/mode` — permission mode string (default: `rwxrwx---`)
+
+The `tentacular.io/group` annotation is deprecated and not used for authorization.
 
 #### Default Inheritance
 
-Namespaces can specify defaults for new tentacles deployed within them. When a deployer does not pass `--group` or `--share`, the namespace defaults are used:
+Enclaves specify defaults for new tentacles deployed within them:
 
 - `tentacular.io/default-mode` — default mode for new tentacles (e.g., `rwxrwx---`)
-- `tentacular.io/default-group` — default group for new tentacles (e.g., `platform-eng`)
 
 ## Accounting
 
@@ -155,10 +162,21 @@ These are set when a tentacle is first deployed and preserved on subsequent upda
 | `tentacular.io/owner-sub` | Owner's OIDC subject identifier (used for identity matching) |
 | `tentacular.io/owner-email` | Owner's email address (display) |
 | `tentacular.io/owner-name` | Owner's display name (display) |
-| `tentacular.io/group` | Group assignment (from `--group` flag or empty) |
-| `tentacular.io/mode` | Permission string (e.g., `rwxr-x---`) |
+| `tentacular.io/mode` | Permission string (e.g., `rwxrwx---`) |
 | `tentacular.io/auth-provider` | Authentication provider used at deploy time (e.g., `keycloak`, `bearer-token`) |
 | `tentacular.io/created-at` | Creation timestamp (set once on first deploy) |
+
+Enclave namespaces additionally carry:
+
+| Annotation | Description |
+|------------|-------------|
+| `tentacular.io/enclave-owner` | Enclave owner email |
+| `tentacular.io/enclave-owner-sub` | Enclave owner OIDC subject identifier |
+| `tentacular.io/enclave-members` | JSON array of registered member emails |
+| `tentacular.io/channel-id` | Platform channel ID (e.g., Slack channel ID) |
+| `tentacular.io/channel-name` | Platform channel display name |
+
+The `tentacular.io/group` annotation is deprecated. It may be present on pre-enclave deployments but is not used by the authorization evaluator.
 
 #### Update Tracking Annotations (stamped on UPDATE)
 
@@ -186,53 +204,52 @@ The MCP server emits structured slog entries for every authorization decision. T
 
 ## Annotation Migration
 
+### From `tentacular.dev/*`
+
 The following `tentacular.dev/*` annotations have been replaced:
 
 | Old Annotation | Replacement |
 |----------------|-------------|
 | `tentacular.dev/owner` | `tentacular.io/owner-sub`, `tentacular.io/owner-email`, `tentacular.io/owner-name` |
-| `tentacular.dev/team` | `tentacular.io/group` |
+| `tentacular.dev/team` | Deprecated — use enclave membership instead |
 | `tentacular.dev/environment` | `tentacular.io/environment` |
 | `tentacular.dev/tags` | `tentacular.io/tags` |
 | `tentacular.dev/cron-schedule` | `tentacular.io/cron-schedule` |
 
 The old `tentacular.dev/*` annotations are no longer recognized. Existing deployments using old annotations must be redeployed to receive authorization metadata.
 
+### From Group-Based Authorization
+
+The `tentacular.io/group` annotation and the `--group`/`--share` group flag are deprecated. Authorization now uses enclave membership (owner/member/other) instead of IdP group assignment. Existing deployments with `tentacular.io/group` set will have the annotation ignored by the authorization evaluator — access is controlled by enclave membership only.
+
 ## CLI Commands
 
 ```bash
-# --- Tentacle permissions (2 positional args: namespace + name) ---
+# --- Tentacle permissions (2 positional args: enclave + tentacle name) ---
 
 # Check permissions on a tentacle
-tntc permissions get <namespace> <name>
+tntc permissions get <enclave> <name>
 
 # Set mode using a preset name or rwx string
-tntc permissions chmod group-read <namespace> <name>
-tntc permissions chmod rwxr-x--- <namespace> <name>
+tntc permissions chmod member-read <enclave> <name>
+tntc permissions chmod rwxr-x--- <enclave> <name>
 
-# Change group
-tntc permissions chgrp <group> <namespace> <name>
+# Deploy with member-readable mode
+tntc deploy --share --enclave <enclave>
 
-# Deploy with group
-tntc deploy --group <group> --env <target>
+# --- Enclave permissions (1 positional arg: enclave name) ---
 
-# Deploy with group-readable mode
-tntc deploy --share --env <target>
+# Check permissions on an enclave
+tntc permissions get <enclave>
 
-# --- Namespace permissions (1 positional arg: namespace) ---
-
-# Check permissions on a namespace
-tntc permissions get <namespace>
-
-# Set namespace mode
-tntc permissions set <namespace> --mode group-edit
+# Set enclave mode
+tntc permissions set <enclave> --mode open-read
 
 # Shortcuts
-tntc chmod <mode-or-preset> <namespace>
-tntc chgrp <group> <namespace>
+tntc chmod <mode-or-preset> <enclave>
 ```
 
-Only the owner can modify permissions on a tentacle or namespace.
+Only the owner can modify permissions on a tentacle or enclave. The `--group` and `chgrp` flags are removed — member access is governed by enclave membership (Slack channel membership), not group assignment.
 
 ## MCP Server Configuration
 
@@ -242,18 +259,23 @@ Authorization is enabled by default when the MCP server starts. To disable all a
 TENTACULAR_AUTHZ_ENABLED=false
 ```
 
-When disabled, all authenticated requests (OIDC or bearer token) have full access to all operations. The default mode for new deployments is `group-read` (`rwxr-x---`).
+When disabled, all authenticated requests (OIDC or bearer token) have full access to all operations. The default mode for new enclaves and tentacles is `member-edit` (`rwxrwx---`).
 
 ## MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `permissions_get` | Get owner, group, mode, and preset for a deployed tentacle |
-| `permissions_set` | Set group or share preset on a tentacle (owner-only) |
-| `ns_permissions_get` | Get owner, group, mode, and preset for a namespace |
-| `ns_permissions_set` | Set group, mode, or share preset on a namespace (owner-only) |
+| `permissions_get` | Get owner, mode, and preset for a deployed tentacle or enclave |
+| `permissions_set` | Set mode or share preset on a tentacle or enclave (owner-only) |
+| `enclave_provision` | Provision a new enclave with ownership and membership |
+| `enclave_sync` | Update enclave membership, status, or mode |
+| `enclave_info` | Show enclave details, membership, and quota |
+| `enclave_list` | List accessible enclaves |
+| `enclave_deprovision` | Permanently delete an enclave (irreversible) |
 
-See [MCP Tools Reference](/tentacular-docs/reference/mcp-tools/) for parameter details.
+The `ns_permissions_get` and `ns_permissions_set` tools are deprecated in favor of using `permissions_get`/`permissions_set` with an enclave name. The `ns_create`, `ns_list`, `ns_delete` tools are deprecated in favor of the enclave tools.
+
+See [Enclave MCP Tools Reference](/tentacular-docs/reference/enclave-tools/) for full parameter details.
 
 ## Unowned Resources
 
@@ -273,20 +295,19 @@ MCP-layer authorization enforces permissions through Kubernetes annotations. Clu
 
 ```bash
 # Stamp ownership on a tentacle
-kubectl annotate deploy -n tent-dev my-tentacle \
+kubectl annotate deploy -n my-enclave my-tentacle \
   tentacular.io/owner-sub=<user-uuid> \
   tentacular.io/owner-email=user@example.com \
   tentacular.io/owner-name="User Name" \
-  tentacular.io/group=platform-team \
-  tentacular.io/mode=rwxr-x---
+  tentacular.io/mode=rwxrwx---
 
-# Stamp ownership on a namespace
-kubectl annotate ns tent-dev \
+# Stamp ownership on an enclave namespace
+kubectl annotate ns my-enclave \
   tentacular.io/owner-sub=<user-uuid> \
   tentacular.io/owner-email=user@example.com \
   tentacular.io/owner-name="User Name" \
-  tentacular.io/group=platform-team \
-  tentacular.io/mode=rwxr-x---
+  tentacular.io/enclave-members='["member1@example.com","member2@example.com"]' \
+  tentacular.io/mode=rwxrwx---
 ```
 
 Find user UUIDs via `tntc whoami` (Subject field) or the Keycloak admin console.
@@ -294,7 +315,7 @@ Find user UUIDs via `tntc whoami` (Subject field) or the Keycloak admin console.
 ### Transferring Ownership
 
 ```bash
-kubectl annotate deploy -n tent-dev my-tentacle \
+kubectl annotate deploy -n my-enclave my-tentacle \
   tentacular.io/owner-sub=<new-uuid> \
   tentacular.io/owner-email=new@example.com \
   tentacular.io/owner-name="New Owner" \
@@ -304,9 +325,8 @@ kubectl annotate deploy -n tent-dev my-tentacle \
 ### Auditing Permissions
 
 ```bash
-kubectl get deploy -n tent-dev -o custom-columns=\
+kubectl get deploy -n my-enclave -o custom-columns=\
   NAME:.metadata.name,\
   OWNER:.metadata.annotations.tentacular\.io/owner-email,\
-  GROUP:.metadata.annotations.tentacular\.io/group,\
   MODE:.metadata.annotations.tentacular\.io/mode
 ```
