@@ -66,7 +66,7 @@ This:
 3. Generates ConfigMap with `workflow.yaml` + `nodes/*.ts`
 4. Generates K8s manifests (Deployment, Service, NetworkPolicy)
 5. Provisions secrets to K8s
-6. Ensures namespace exists (via MCP `ns_create`)
+6. Ensures enclave exists (via MCP `enclave_provision` if needed)
 7. Applies all manifests (via MCP `wf_apply`)
 
 ### 5. Verify Deployment

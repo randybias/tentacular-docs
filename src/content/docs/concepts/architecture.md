@@ -254,7 +254,7 @@ Tentacular is a multi-tenant platform. Multiple teams share a single Kubernetes 
 | Permission | Bit | Operations |
 |------------|-----|------------|
 | Read (r) | 4 | `wf_list`, `wf_status`, `wf_describe`, `wf_health`, `wf_logs`, `wf_pods`, `wf_events` |
-| Write (w) | 2 | `wf_apply`, `wf_remove`, `permissions_set` |
+| Write (w) | 2 | `wf_apply`, `wf_remove`, `enclave_sync` |
 | Execute (x) | 1 | `wf_run`, `wf_restart` |
 
 **Bearer-token bypass:** When the MCP server authenticates a request via bearer token (no OIDC identity), authorization is bypassed entirely. This is the operator/automation escape hatch.

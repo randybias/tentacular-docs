@@ -80,6 +80,6 @@ See the enclave architecture diagram (`scratch/enclave-architecture.drawio`) for
 
 ## Relationship to Namespaces
 
-In earlier Tentacular releases, namespaces were the primary tenant boundary. Enclaves replace namespaces as the user-facing abstraction. Internally, each enclave still maps 1:1 to a Kubernetes namespace, and the namespace tools (`ns_create`, `ns_list`, etc.) are deprecated in favor of the enclave tools.
+In earlier Tentacular releases, namespaces were the primary tenant boundary. Enclaves replace namespaces as the user-facing abstraction. Internally, each enclave still maps 1:1 to a Kubernetes namespace. All namespace lifecycle is handled through the enclave tools (`enclave_provision`, `enclave_deprovision`, etc.).
 
 Platform operators who need emergency access can still work at the namespace/deployment level using `tntc` with a bearer token. Regular users and The Kraken always operate through the enclave abstraction.

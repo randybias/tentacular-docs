@@ -3,17 +3,17 @@ title: MCP Tools
 description: Complete reference for Tentacular MCP server tools
 ---
 
-The Tentacular MCP server exposes 30 tools across 9 groups via the Model Context Protocol. These tools are used by the `tntc` CLI and can be called directly by AI agents.
+The Tentacular MCP server exposes tools via the Model Context Protocol. These tools are used by the `tntc` CLI and can be called directly by AI agents.
 
-## Namespace Management
+## Enclave Management
 
 | Tool | Description |
 |------|-------------|
-| `ns_create` | Create a namespace with PSA labels, default NetworkPolicy, and owner/group/mode permissions. Accepts `group`, `mode`/`share`, `default_mode`, and `default_group` parameters |
-| `ns_get` | Get namespace details including labels and annotations |
-| `ns_list` | List all tentacular-managed namespaces |
-| `ns_update` | Update namespace labels or annotations |
-| `ns_delete` | Delete a namespace and all its resources |
+| `enclave_provision` | Provision a new enclave (namespace + quota + policies + exoskeleton services) with owner and optional initial members |
+| `enclave_info` | Get enclave details including ownership, membership, quota, and exoskeleton service status |
+| `enclave_list` | List accessible enclaves, optionally filtered by caller email |
+| `enclave_sync` | Update enclave membership, status (freeze/unfreeze), or transfer ownership |
+| `enclave_deprovision` | Permanently delete an enclave and all its resources (irreversible) |
 
 ## Workflow Lifecycle
 
@@ -56,24 +56,7 @@ The Tentacular MCP server exposes 30 tools across 9 groups via the Model Context
 | `audit_netpol` | Verify NetworkPolicy matches contract |
 | `audit_psa` | Verify Pod Security Admission labels |
 
-## Exoskeleton
-
-| Tool | Description |
-|------|-------------|
-| `exo_status` | Check which backing services are available on the cluster |
-| `exo_registration` | View exoskeleton registration status for a workflow |
-| `exo_list` | List all exoskeleton registrations across namespaces |
-
-## Permissions
-
-| Tool | Description |
-|------|-------------|
-| `permissions_get` | Get owner, group, mode, and preset for a deployed tentacle |
-| `permissions_set` | Set group or share preset for a deployed tentacle (owner-only). Takes `group` and/or `share` (preset name) parameters |
-| `ns_permissions_get` | Get owner, group, mode, default-mode, and default-group for a namespace |
-| `ns_permissions_set` | Set group, mode, or share preset for a namespace (namespace-owner-only). Takes `group`, `mode`, and/or `share` parameters |
-
-Authorization is enforced only when OIDC authentication is active. Bearer-token requests bypass authorization entirely. The `permissions_set` and `ns_permissions_set` tools can only be called by the respective owner. Default mode is `group-read` (`rwxr-x---`).
+Authorization is enforced only when OIDC authentication is active. Bearer-token requests bypass authorization entirely. Enclave permissions are managed through `enclave_sync`. Tentacle permissions are managed through `enclave_sync` (enclave-level) and deployment annotations (tentacle-level).
 
 ## Module Proxy
 
@@ -83,17 +66,15 @@ Authorization is enforced only when OIDC authentication is active. Bearer-token 
 
 ## Tool Groups
 
-Tools are organized into 9 functional groups:
+Tools are organized into functional groups:
 
-1. **Namespace** — `ns_*` (5 tools)
+1. **Enclave** — `enclave_provision`, `enclave_info`, `enclave_list`, `enclave_sync`, `enclave_deprovision` (5 tools)
 2. **Workflow Lifecycle** — `wf_apply`, `wf_remove`, `wf_list`, `wf_status`, `wf_describe`, `wf_run`, `wf_restart`, `wf_logs`, `wf_pods`, `wf_events`, `wf_jobs` (11 tools)
 3. **Workflow Health** — `wf_health`, `wf_health_ns` (2 tools)
 4. **Cluster** — `cluster_preflight`, `cluster_profile` (2 tools)
 5. **Health** — `health_cluster_summary`, `health_nodes`, `health_ns_usage` (3 tools)
 6. **Audit** — `audit_rbac`, `audit_netpol`, `audit_psa` (3 tools)
-7. **Exoskeleton** — `exo_status`, `exo_registration`, `exo_list` (3 tools)
-8. **Permissions** — `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` (4 tools)
-9. **Module Proxy** — `proxy_status` (1 tool)
+7. **Module Proxy** — `proxy_status` (1 tool)
 
 ## Authentication
 
@@ -110,5 +91,4 @@ When OIDC authentication is active, the MCP server enforces POSIX-like permissio
 
 See the [Authorization guide](/tentacular-docs/guides/authorization/) for details on the permission model, annotation schema, and configuration.
 
-*Generated from: `tentacular-mcp/pkg/tools/register.go`*
-*Run `scripts/gen-mcp-reference.sh` to regenerate.*
+*See [MCP Server Setup](/tentacular-docs/guides/mcp-server-setup/) for installation and authentication details.*

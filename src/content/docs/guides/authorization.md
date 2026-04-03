@@ -87,7 +87,7 @@ Mode is stored as a 9-character rwx string (e.g., `rwxrwx---`). Each group of th
 
 ### Presets
 
-Named presets map to common access patterns. Use preset names with `permissions_set` and `tntc permissions chmod`. The presets reflect enclave membership (member = registered enclave member, other = unenrolled authenticated user):
+Named presets map to common access patterns. Use preset names with `enclave_sync` and `tntc permissions chmod`. The presets reflect enclave membership (member = registered enclave member, other = unenrolled authenticated user):
 
 | Preset | Mode String | Use Case |
 |--------|-------------|----------|
@@ -265,15 +265,11 @@ When disabled, all authenticated requests (OIDC or bearer token) have full acces
 
 | Tool | Description |
 |------|-------------|
-| `permissions_get` | Get owner, mode, and preset for a deployed tentacle or enclave |
-| `permissions_set` | Set mode or share preset on a tentacle or enclave (owner-only) |
 | `enclave_provision` | Provision a new enclave with ownership and membership |
 | `enclave_sync` | Update enclave membership, status, or mode |
 | `enclave_info` | Show enclave details, membership, and quota |
 | `enclave_list` | List accessible enclaves |
 | `enclave_deprovision` | Permanently delete an enclave (irreversible) |
-
-The `ns_permissions_get` and `ns_permissions_set` tools are deprecated in favor of using `permissions_get`/`permissions_set` with an enclave name. The `ns_create`, `ns_list`, `ns_delete` tools are deprecated in favor of the enclave tools.
 
 See [Enclave MCP Tools Reference](/tentacular-docs/reference/enclave-tools/) for full parameter details.
 
