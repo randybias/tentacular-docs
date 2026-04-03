@@ -30,6 +30,8 @@ export default defineConfig({
 					items: [
 						{ label: 'Overview', slug: 'concepts/overview' },
 						{ label: 'Architecture', slug: 'concepts/architecture' },
+						{ label: 'Enclaves', slug: 'concepts/enclaves' },
+						{ label: 'Team Collaboration', slug: 'concepts/team-collaboration' },
 						{ label: 'Security', slug: 'concepts/security' },
 						{ label: 'Exoskeleton', slug: 'concepts/exoskeleton' },
 						{ label: 'Agent Skill', slug: 'concepts/agent-skill' },
@@ -39,6 +41,8 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						{ label: 'Quickstart', slug: 'guides/quickstart' },
+						{ label: 'Your First Enclave', slug: 'guides/first-enclave' },
+						{ label: 'Managing Enclave Members', slug: 'guides/managing-members' },
 						{ label: 'Your First Tentacle', slug: 'guides/first-tentacle' },
 						{ label: 'Cluster Configuration', slug: 'guides/cluster-configuration' },
 						{ label: 'MCP Server Setup', slug: 'guides/mcp-server-setup' },
@@ -72,6 +76,7 @@ export default defineConfig({
 						{ label: 'Workflow Spec', slug: 'reference/workflow-spec' },
 						{ label: 'Node Contract', slug: 'reference/node-contract' },
 						{ label: 'MCP Tools', slug: 'reference/mcp-tools' },
+						{ label: 'Enclave Tools', slug: 'reference/enclave-tools' },
 						{ label: 'Glossary', slug: 'reference/glossary' },
 						{
 							label: 'Scaffold Quickstarts',

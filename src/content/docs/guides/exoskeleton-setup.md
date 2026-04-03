@@ -78,7 +78,7 @@ Only configure the services you've installed — the exoskeleton handles each in
 
 ```bash
 # Check which services the exoskeleton reports as available
-# (agents use exo_status MCP tool to check this)
+# (agents use enclave_info MCP tool to check exo_services availability)
 tntc cluster check
 ```
 
@@ -114,7 +114,7 @@ tntc status my-tentacle -n my-namespace --detail
 
 ## Verification
 
-- `exo_status` reports installed services as available
+- `enclave_info` reports installed services as available via `exo_services`
 - Tentacles with `tentacular-*` dependencies deploy successfully
 - Deployed tentacles can connect to provisioned resources
 - `tntc undeploy --force` cleans up backing-service resources

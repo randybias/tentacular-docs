@@ -10,7 +10,7 @@ The workflow contract is the central design primitive and the enforceable securi
 ### What the Contract Drives
 
 - **Deno runtime permissions** — The TypeScript engine is locked to `--allow-net=<declared hosts:ports>` only. No undeclared network access is possible at the runtime level.
-- **Kubernetes NetworkPolicy** — Default-deny ingress/egress is applied to every tentacle namespace. Egress rules are generated per-dependency (HTTPS on :443, PostgreSQL on :5432, NATS on :4222, etc.). Only declared destinations are reachable at the network level.
+- **Kubernetes NetworkPolicy** — Default-deny ingress/egress is applied to every enclave namespace. Egress rules are generated per-dependency (HTTPS on :443, PostgreSQL on :5432, NATS on :4222, etc.). Only declared destinations are reachable at the network level.
 - **Secrets validation** — Every secret referenced in the contract must exist in the secrets file before deployment proceeds. No dangling references, no missing credentials at runtime.
 - **Dynamic targets** — For dependencies resolved at runtime (e.g., RSS feeds from multiple hosts), the contract supports CIDR-based rules with explicit port constraints, providing controlled flexibility without opening the network wide.
 
@@ -22,8 +22,8 @@ Security boundaries from innermost to outermost. Layers are designed so that sid
 
 ```mermaid
 graph TB
-    subgraph L0 ["Layer 0 — Cluster: RBAC / OIDC AuthZ (MCP server)"]
-        subgraph L1 ["Layer 1 — Namespace: NetworkPolicy (default-deny, contract-derived egress)"]
+    subgraph L0 ["Layer 0 — Cluster: Enclave RBAC / OIDC AuthZ (MCP server)"]
+        subgraph L1 ["Layer 1 — Enclave namespace: NetworkPolicy (default-deny, contract-derived egress)"]
             subgraph L2 ["Layer 2 — Pod: gVisor sandbox (runtimeClassName: gvisor)"]
                 subgraph L3E ["Layer 3 — Engine only: Deno permission flags (--allow-net, --allow-read, ...)"]
                     ENG["Engine\n(Deno)"]
@@ -42,8 +42,8 @@ graph TB
 
 | Layer | Scope | Mechanism | Sidecar Coverage |
 |-------|-------|-----------|-----------------|
-| 0 | Cluster | RBAC / OIDC (MCP server) | No change — sidecar containers are not accessible from outside the pod |
-| 1 | Namespace | NetworkPolicy | Covers all containers — sidecar external access requires a contract dependency |
+| 0 | Cluster | Enclave RBAC / OIDC (MCP server) | No change — sidecar containers are not accessible from outside the pod |
+| 1 | Enclave namespace | NetworkPolicy | Covers all containers — sidecar external access requires a contract dependency |
 | 2 | Pod | gVisor (`runtimeClassName`) | `runtimeClassName` is pod-level — all containers including sidecars run under gVisor |
 | 3 | Per-container | Deno flags (engine) / own runtime (sidecar) | Engine-specific; sidecars run their own runtime but are constrained by Layers 1, 2, and 4 |
 | 4 | Per-container | SecurityContext | Identical restrictions: `readOnlyRootFilesystem`, no escalation, `drop: ALL` applied to every container |
@@ -102,7 +102,7 @@ The service account token is not mounted, preventing compromised pods from authe
 
 ### Layer 5: Network Policy
 
-Default-deny ingress and egress is applied to every tentacle namespace. Egress rules are generated per-dependency from the contract — for user-declared dependencies, the CLI derives the rules; for exoskeleton dependencies (`tentacular-*`), the MCP server automatically patches the NetworkPolicy with the correct egress rules at deploy time. Only declared destinations are reachable. Control-plane ingress from the MCP server is allowed for trigger execution. DNS egress to CoreDNS is always permitted.
+Default-deny ingress and egress is applied to every enclave namespace. Egress rules are generated per-dependency from the contract — for user-declared dependencies, the CLI derives the rules; for exoskeleton dependencies (`tentacular-*`), the MCP server automatically patches the NetworkPolicy with the correct egress rules at deploy time. Only declared destinations are reachable. Control-plane ingress from the MCP server is allowed for trigger execution. DNS egress to CoreDNS is always permitted.
 
 **Sidecar network access:** Sidecars can only reach external hosts if the workflow contract includes a dependency for that host. A sidecar that needs to download ML models at startup must have a corresponding entry in `contract.dependencies`. Without it, NetworkPolicy blocks the egress traffic.
 
@@ -135,17 +135,38 @@ Nodes cannot access public TypeScript module repositories. All imports route thr
 - Enables package pinning and version control
 - Sets the stage for air-gapped deployment in the future
 
-## Multi-Tenancy and RBAC
+## Multi-Tenancy and Enclave-Based RBAC
 
-When multiple teams share a Kubernetes cluster, contract-driven sandboxing protects tentacles from the outside world — but it doesn't control which *users* can access which *tentacles*. That's where multi-tenancy and RBAC come in.
+When multiple teams share a Kubernetes cluster, contract-driven sandboxing protects tentacles from the outside world — but it doesn't control which *users* can access which *tentacles*. That's where enclaves and RBAC come in.
 
-Tentacular implements a POSIX-like permission model where namespaces are directories and tentacles are files. Every namespace and every tentacle has an owner (from OIDC identity), a group (from the IdP), and a mode string (e.g., `rwxr-x---`) controlling read, write, and execute access for owner, group members, and others.
+Tentacular implements a POSIX-like permission model where enclaves are directories and tentacles are files. Every enclave and every tentacle has an **owner**, a **member** set (registered enclave members), and an **other** class (any other authenticated user), with a mode string (e.g., `rwxrwx---`) controlling read, write, and execute access for each.
+
+The group model comes from Slack channel membership — not from IdP groups. Keycloak provides authentication (identity) only; Slack channel membership determines authorization (who is a member of which enclave). This eliminates dependency on enterprise directory structures and lets teams be self-service.
 
 ### The AAA Framework
 
-- **Authentication** — OIDC via Keycloak (with brokered IdPs like Google SSO). JWT carries cryptographic identity and group membership. Bearer-token path for admin automation.
-- **Authorization** — Two-layer RBAC enforcement at the MCP server. Namespace permissions gate access to the tenant boundary; tentacle permissions gate individual resources. Five presets from `private` (owner-only) to `public-read` (visible to all tenants).
+- **Authentication** — OIDC via Keycloak (with brokered IdPs like Google SSO). JWT carries cryptographic identity (`sub`, `email`). Bearer-token path for admin/automation.
+- **Authorization** — Two-layer RBAC enforcement at the MCP server. Enclave permissions gate access to the tenant boundary; tentacle permissions gate individual resources. Five presets from `private` (owner-only) to `open-run` (visitors can view and trigger).
 - **Accounting** — Every deploy stamps identity (who, when, via which agent). Every permission change is auditable through Kubernetes annotations. Structured logging captures every authorization decision.
+
+### Two-Layer Check
+
+The MCP server evaluates two permission layers on every OIDC request:
+
+1. **Enclave check** — does the caller have the required permission on the enclave?
+2. **Tentacle check** — does the caller have the required permission on the specific tentacle?
+
+Both must pass. The enclave owner is a superuser within their enclave — they can perform any operation on any tentacle regardless of individual tentacle permissions.
+
+### Permission Principals
+
+| Principal | Who |
+|-----------|-----|
+| **Owner** | The Slack channel owner who provisioned the enclave, or the user who deployed a specific tentacle |
+| **Member** | Registered enclave members — users who joined the Slack channel and completed OIDC sign-in |
+| **Other** | Any other authenticated user — visitors who are not the owner or a registered member |
+
+IdP group membership (Keycloak groups) is not used for authorization. Enclave membership is derived from Slack channel membership only.
 
 ### How It Integrates with Defense-in-Depth
 

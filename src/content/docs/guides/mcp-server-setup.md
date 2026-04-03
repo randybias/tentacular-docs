@@ -188,18 +188,16 @@ Expected metadata response:
 
 ## How It Works
 
-The MCP server exposes 31 tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
+The MCP server exposes tools via the Model Context Protocol (JSON-RPC 2.0 over Streamable HTTP). These tools are organized into functional groups:
 
 | Group | Tools | Purpose |
 |-------|-------|---------|
-| Namespace | `ns_create`, `ns_get`, `ns_list`, `ns_update`, `ns_delete` | Namespace lifecycle |
+| Enclave | `enclave_provision`, `enclave_info`, `enclave_list`, `enclave_sync`, `enclave_deprovision` | Enclave (tenant workspace) lifecycle |
 | Workflow | `wf_apply`, `wf_remove`, `wf_list`, `wf_status`, `wf_run`, etc. | Tentacle lifecycle |
 | Workflow Health | `wf_health`, `wf_health_ns` | Per-tentacle health |
 | Health | `health_cluster_summary`, `health_nodes`, `health_ns_usage` | Cluster monitoring |
 | Audit | `audit_rbac`, `audit_netpol`, `audit_psa` | Security validation |
 | Cluster | `cluster_preflight`, `cluster_profile` | Cluster capabilities + exoskeleton service discovery |
-| Exoskeleton | `exo_status`, `exo_registration`, `exo_list` | Backing services |
-| Permissions | `permissions_get`, `permissions_set`, `ns_permissions_get`, `ns_permissions_set` | RBAC |
 | Module Proxy | `proxy_status` | ESM proxy |
 
 See [MCP Tools Reference](/tentacular-docs/reference/mcp-tools/) for the complete list.
@@ -247,4 +245,4 @@ See the [Authorization guide](/tentacular-docs/guides/authorization/) for the fu
 | `invalid_scope` during Claude Code auth | Keycloak client missing scopes | Claude Code requests all scopes from discovery; add missing ones as optional client scopes |
 | Claude Code `Authentication Error` | No auth discovery endpoint | Set `externalURL` in Helm values, or add `authServerMetadataUrl` to `.mcp.json` |
 | `resource has no owner` | Resource created via bearer-token | Bearer-token creates ownerless resources; re-create with OIDC identity |
-| `permission denied` on workflow operations | Authz mode too restrictive | Check `permissions_get`, adjust with `permissions_set`. Or set `TENTACULAR_AUTHZ_ENABLED=false` to disable |
+| `permission denied` on workflow operations | Authz mode too restrictive | Check enclave permissions via `enclave_info`. Or set `TENTACULAR_AUTHZ_ENABLED=false` to disable |

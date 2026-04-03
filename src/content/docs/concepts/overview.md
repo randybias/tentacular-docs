@@ -5,18 +5,21 @@ description: What Tentacular is, why it exists, and how it differs from other sy
 
 ## What Is Tentacular?
 
-Tentacular is an agentic-friendly platform for the deployment and management of secure, durable, autonomic workflows. These workflows, referred to as **tentacles**, provide a mechanism for AI agents to build a catalog of token-efficient, hardened, autonomic business logic that can be reused. Think of it as enshrining AI agent work into a sort of "muscle memory."
+Tentacular is a **Secure Workflows as a Service** platform for agentic teams. It lets AI agents build, deploy, and manage secure, durable, autonomic workflows — called **tentacles** — inside team-scoped workspaces called **enclaves**. Think of it as enshrining AI agent work into a sort of "muscle memory": once an agent builds a tentacle, it runs autonomously, efficiently, and safely — without burning tokens on repetitive tasks.
+
+An **enclave** is the primary organizational unit. Each enclave is a self-contained workspace that binds a Slack channel, a Kubernetes namespace, shared infrastructure services, and team membership into a single governed unit. Teams work in their Slack channel; Tentacular handles the cluster underneath.
 
 Traditional workflow systems are not agentic-friendly. AI agents performing repetitive tasks are extremely token-inefficient, using large amounts of tokens to perform the same work over and over. Most importantly, AI agents building reusable flows and enshrining them into long-term muscle memory provide unique opportunities in terms of hardening and securing those flows to make them highly resistant to prompt injection and data exfiltration attacks.
 
 ## How It Works
 
-Tentacular provides four key components:
+Tentacular provides five key components:
 
-1. **A hardened workflow plane** for hosting and running tentacles on Kubernetes
-2. **An in-cluster secure control plane** for managing deployed tentacles
-3. **A set of initial tentacle templates**, including common patterns as starting points
-4. **An Agent Skill** that allows a general-purpose agent such as Claude Code, Codex, or Gemini to design, build, and deploy a tentacle to the workflow plane
+1. **Enclaves** — team-scoped workspaces with automatic provisioning of shared infrastructure (Postgres, S3, and optionally NATS/SPIRE)
+2. **A hardened workflow plane** for hosting and running tentacles on Kubernetes
+3. **An in-cluster secure control plane** (MCP server) for managing deployed tentacles
+4. **A set of reusable scaffold templates**, including common patterns as starting points
+5. **An Agent Skill** that allows a general-purpose agent such as Claude Code, Codex, or Gemini to design, build, and deploy tentacles to the workflow plane
 
 Another way to think of this is a mechanism for agents to dynamically build their own n8n-style workflows, without the n8n cognitive overhead or framework. The outcome is a more secure, agentic-friendly workflow system with high levels of reusability and a tiny attack surface.
 

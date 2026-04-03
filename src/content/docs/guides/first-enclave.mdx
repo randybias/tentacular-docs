@@ -1,0 +1,142 @@
+---
+title: Your First Enclave
+description: Provision a team enclave, invite members, and deploy your first tentacle into it
+---
+
+This guide walks you through setting up a Tentacular enclave for your team and deploying a tentacle into it. You'll use The Kraken Slack bot for the enclave setup and the `tntc` CLI for tentacle deployment.
+
+## Prerequisites
+
+- The Kraken bot installed in your Slack workspace
+- A Kubernetes cluster with the Tentacular MCP server installed (`tntc cluster check` should pass)
+- `tntc` CLI installed and authenticated (`tntc login`)
+
+## Step 1: Create a Slack Channel
+
+Create a Slack channel for your team's work. The channel name becomes the enclave name, so choose something meaningful and lowercase-friendly.
+
+```
+/create channel #marketing-automations
+```
+
+Invite The Kraken to the channel:
+
+```
+/invite @kraken
+```
+
+At this point, The Kraken is in the channel but not yet active — it's in regular (non-interactive) mode and will not respond to general messages.
+
+## Step 2: Initialize the Enclave
+
+Tell The Kraken to set up the channel as a managed workspace. You must be the Slack channel owner to do this.
+
+```
+@kraken set up this channel for our team
+```
+
+The Kraken will:
+
+1. Verify you are the channel owner
+2. Ask two quick questions to determine the right resource allocation (CPU, memory, storage)
+3. Provision the enclave: Kubernetes namespace, Postgres database, S3 storage, RBAC, network policies, and resource quota
+4. Post OIDC sign-in links for everyone in the channel
+
+This takes about 10–20 seconds. When it's done, The Kraken confirms:
+
+```
+This channel is now your team's workspace. I need everyone to sign in
+before we start — it's a one-time security check. [Sign in link]
+```
+
+:::note
+If you prefer the CLI, you can provision an enclave directly:
+
+```bash
+tntc enclave provision --name marketing-automations \
+  --owner alice@company.com \
+  --channel-id C08XXXXXXX \
+  --channel-name marketing-automations
+```
+:::
+
+## Step 3: Sign In (All Team Members)
+
+Each person in the channel — including you — needs to complete OIDC sign-in once. This links their Slack identity to their cluster identity and registers them as an enclave member.
+
+Click the sign-in link The Kraken posted. A browser window opens, prompts for your company SSO credentials, and closes. The Kraken posts a confirmation in the channel when each person completes sign-in.
+
+After everyone has signed in:
+
+```
+Everyone's verified. You're all set up. What would you like to automate?
+```
+
+## Step 4: Invite Team Members to the Channel
+
+If you need to add more people after initial setup, invite them to the Slack channel the normal way:
+
+```
+/invite @bob @carol
+```
+
+The Kraken detects the new members and sends them sign-in links automatically. Once they complete OIDC sign-in, they're registered as enclave members.
+
+To verify the current member list:
+
+```bash
+tntc enclave info marketing-automations
+```
+
+## Step 5: Deploy Your First Tentacle
+
+With the enclave active, deploy a tentacle into it using the `--enclave` flag. The enclave flag tells `tntc` which namespace to use and automatically applies the enclave's permission defaults.
+
+```bash
+cd my-tentacle
+tntc deploy --enclave marketing-automations
+```
+
+Without the `--enclave` flag, `tntc` attempts to infer the enclave from context. If you belong to exactly one enclave, it auto-resolves. With multiple enclaves, the flag is required.
+
+You can also ask The Kraken to help build and deploy a tentacle:
+
+```
+@kraken build me a workflow that checks competitor pricing every morning
+and posts a summary here
+```
+
+The Kraken handles the full cycle: clarifying questions, scaffold selection, build, test, and deploy.
+
+## Step 6: Check Enclave Status
+
+Verify the enclave and the newly deployed tentacle are healthy:
+
+```bash
+# Enclave overview
+tntc enclave info marketing-automations
+
+# Tentacle status within the enclave
+tntc status marketing-automations/competitor-monitor
+```
+
+Or ask The Kraken:
+
+```
+@kraken what's running?
+```
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| "I can only initialize enclaves for channel owners" | You are not the Slack channel owner | Transfer channel ownership or ask the owner to run the initialization |
+| `enclave not found` on deploy | Enclave name or namespace doesn't match | Run `tntc enclave list` to see available enclaves |
+| Member not appearing after invite | OIDC sign-in not completed | Ask the member to click the sign-in link The Kraken posted |
+| Tentacle deploy fails with "enclave frozen" | Channel was archived | Unarchive the Slack channel to unfreeze the enclave |
+
+## Next Steps
+
+- [Managing Enclave Members](/tentacular-docs/guides/managing-members/) — adding/removing members, transferring ownership, freezing
+- [Your First Tentacle](/tentacular-docs/guides/first-tentacle/) — building a tentacle from scratch with nodes and tests
+- [Team Collaboration Concepts](/tentacular-docs/concepts/team-collaboration/) — permission presets and the two-layer check

@@ -61,7 +61,7 @@ See [MCP Server Setup](/tentacular-docs/guides/mcp-server-setup/) for full detai
 ## Configure the CLI
 
 ```bash
-# Set defaults (registry, namespace, runtime class)
+# Set defaults (registry, runtime class)
 tntc configure --registry registry.example.com
 
 # Add MCP endpoint to ~/.tentacular/config.yaml:
@@ -72,8 +72,6 @@ Edit `~/.tentacular/config.yaml` to add your environment:
 ```yaml
 environments:
   dev:
-    kubeconfig: ~/.kube/config
-    namespace: tentacular-dev
     image: registry.example.com/tentacular-engine:latest
     runtime_class: gvisor
     mcp_endpoint: http://<node-ip>:30080/mcp
@@ -138,6 +136,21 @@ curl -X POST http://localhost:8080/run
 tntc test
 ```
 
+## Provision an Enclave
+
+Every tentacle lives inside an enclave. If you haven't provisioned one yet:
+
+```bash
+# Provision an enclave (this creates the namespace, Postgres, S3, RBAC, and network policies)
+tntc enclave provision --name my-team --owner you@example.com \
+  --channel-id C08XXXXXXX --channel-name my-team
+
+# Verify it's active
+tntc enclave info my-team
+```
+
+If you're using The Kraken Slack bot, you can provision an enclave by messaging it in your Slack channel instead — see [Your First Enclave](/tentacular-docs/guides/first-enclave/).
+
 ## Deploy to Kubernetes
 
 ```bash
@@ -148,34 +161,34 @@ tntc secrets init
 # Build the engine image
 tntc build -r registry.example.com --push
 
-# Deploy
-tntc deploy -n my-namespace -r registry.example.com
+# Deploy into your enclave
+tntc deploy --enclave my-team -r registry.example.com
 
 # Verify
-tntc status my-first-tentacle -n my-namespace
-tntc logs my-first-tentacle -n my-namespace --tail 20
+tntc status my-first-tentacle
+tntc logs my-first-tentacle --tail 20
 ```
 
 ## Trigger and Monitor
 
 ```bash
 # Trigger manually
-tntc run my-first-tentacle -n my-namespace
+tntc run my-first-tentacle
 
-# List all deployed tentacles
-tntc list -n my-namespace
+# List all deployed tentacles (scoped to your enclave)
+tntc list --enclave my-team
 
 # Check health
-tntc status my-first-tentacle -n my-namespace --detail
+tntc status my-first-tentacle --detail
 
 # Security audit
-tntc audit my-first-tentacle -n my-namespace
+tntc audit my-first-tentacle
 ```
 
 ## Clean Up
 
 ```bash
-tntc undeploy my-first-tentacle -n my-namespace --yes
+tntc undeploy my-first-tentacle --yes
 ```
 
 ## Next Steps
