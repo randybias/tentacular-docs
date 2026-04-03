@@ -26,7 +26,7 @@ Only the enclave owner (by OIDC email) or a bearer-token caller can provision an
 | `platform` | string | Yes | Collaboration platform. Currently `"slack"`. Future: `"discord"`, `"teams"`. |
 | `channel_id` | string | Yes | Platform-specific channel identifier (e.g., Slack channel ID `C08XXXXXXX`). |
 | `channel_name` | string | Yes | Human-readable channel name (display name). Used for user-facing references. |
-| `sizing` | string | No | Resource quota preset: `"small"`, `"medium"`, `"large"`. Default: `"medium"`. |
+| `quota_preset` | string | No | Resource quota preset: `"small"`, `"medium"`, `"large"`. Default: `"medium"`. |
 | `mode` | string | No | Initial permission preset or mode string. Default: `"member-edit"` (`rwxrwx---`). |
 
 ### Sizing Presets
@@ -52,7 +52,7 @@ Only the enclave owner (by OIDC email) or a bearer-token caller can provision an
     "nats": "not_provisioned",
     "spire": "not_provisioned"
   },
-  "sizing": "medium",
+  "quota_preset": "medium",
   "mode": "rwxrwx---",
   "preset": "member-edit",
   "created_at": "2026-04-03T12:00:00Z"
@@ -67,7 +67,7 @@ tntc enclave provision \
   --owner alice@company.com \
   --channel-id C08XXXXXXX \
   --channel-name marketing-automations \
-  --sizing medium
+  --quota-preset medium
 ```
 
 ---
@@ -113,7 +113,7 @@ Callers must have enclave read permission (`r` bit). With `member-edit` (default
     "nats": "not_provisioned",
     "spire": "not_provisioned"
   },
-  "sizing": "medium",
+  "quota_preset": "medium",
   "tentacle_count": 3,
   "quota": {
     "cpu_limit": "2",
@@ -208,10 +208,10 @@ The enclave owner or a bearer-token caller can call this tool. Members cannot ca
 | `remove_members` | string[] | No | OIDC emails to remove from the current member list. |
 | `owner_email` | string | No | New owner email. Updates `tentacular.io/enclave-owner`. |
 | `owner_sub` | string | No | New owner OIDC subject identifier. |
-| `channel_name` | string | No | Updated display name (after Slack channel rename). Does not change the K8s namespace name. |
-| `status` | string | No | New enclave status: `"active"` or `"frozen"`. |
+| `new_channel_name` | string | No | Updated display name (after Slack channel rename). Does not change the K8s namespace name. |
+| `new_status` | string | No | New enclave status: `"active"` or `"frozen"`. |
 | `mode` | string | No | New permission preset or mode string. |
-| `sizing` | string | No | New sizing preset. Applies updated resource quota to the namespace. |
+| `quota_preset` | string | No | New quota preset. Applies updated resource quota to the namespace. |
 
 ### Return Value
 
@@ -244,7 +244,7 @@ tntc enclave sync marketing-automations --status frozen
 tntc enclave sync marketing-automations --status active
 
 # Resize to large
-tntc enclave sync marketing-automations --sizing large
+tntc enclave sync marketing-automations --quota-preset large
 ```
 
 ---

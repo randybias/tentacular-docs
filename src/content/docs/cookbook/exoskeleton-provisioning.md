@@ -16,10 +16,10 @@ Understand and use the exoskeleton to automatically provision Postgres, NATS, an
 
 ### 1. Check Available Services
 
-Use the MCP `exo_status` tool or CLI to see what backing services are available:
+Use the MCP `enclave_info` tool or CLI to see what backing services are available for the enclave:
 
 ```bash
-# The agent checks exo_status before designing a tentacle
+# The agent checks enclave_info (exo_services field) before designing a tentacle
 # Available services vary per cluster
 ```
 
@@ -95,7 +95,7 @@ export default async function run(ctx: Context, input: unknown) {
 
 | Failure | Cause | Resolution |
 |---------|-------|------------|
-| `exoskeleton: postgres not enabled` | Postgres not installed on cluster | Check `exo_status` and install if needed |
+| `exoskeleton: postgres not enabled` | Postgres not installed on cluster | Check `enclave_info` (exo_services) and install if needed |
 | Connection refused to backing service | Service endpoint changed | Re-check exoskeleton installation |
 | Permission denied on Postgres | Role misconfigured | Undeploy and redeploy to re-run registrars |
 | Stale credentials | Service credentials rotated | Undeploy and redeploy to re-run registrars |

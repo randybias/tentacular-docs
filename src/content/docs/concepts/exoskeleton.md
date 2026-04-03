@@ -82,7 +82,7 @@ This Secret is appended to the deployment manifests and mounted at `/app/secrets
 
 ## Feature Flags
 
-Each backing service has independent feature flags. A cluster can have Postgres but not NATS, or NATS but not RustFS. Agents check `exo_status` to discover availability before declaring dependencies.
+Each backing service has independent feature flags. A cluster can have Postgres but not NATS, or NATS but not RustFS. Agents check `enclave_info` (which returns `exo_services` data) to discover availability before declaring dependencies.
 
 ![Exoskeleton Architecture](/tentacular-docs/diagrams/exoskeleton-architecture.svg)
 
