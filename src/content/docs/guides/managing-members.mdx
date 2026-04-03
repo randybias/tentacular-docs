@@ -1,0 +1,184 @@
+---
+title: Managing Enclave Members
+description: Add and remove members, transfer ownership, change permissions, and freeze or deprovision an enclave
+---
+
+Enclave membership is primarily managed through Slack — The Kraken watches channel events and keeps membership in sync automatically. This guide covers the full set of member management operations, including the cases where direct CLI use is needed.
+
+## Adding Members
+
+### Via Slack (Recommended)
+
+Invite the person to the enclave's Slack channel:
+
+```
+/invite @alice
+```
+
+The Kraken detects the `member_joined_channel` event and sends an OIDC sign-in link. Once Alice completes sign-in, she is registered as an enclave member automatically.
+
+The channel owner is notified:
+
+```
+Alice has joined and verified her identity. She is now a member of this workspace.
+```
+
+### Via CLI
+
+If The Kraken is not available or you need to add a member who is already in the channel but hasn't registered:
+
+```bash
+tntc enclave sync <enclave-name> --add-member alice@company.com
+```
+
+This requires the caller to be the enclave owner or a platform operator. The added user must have a valid OIDC identity in Keycloak — `tntc enclave sync` does not create identities.
+
+## Removing Members
+
+### Via Slack (Recommended)
+
+Remove the person from the Slack channel:
+
+```
+/remove @alice
+```
+
+The Kraken detects the `member_left_channel` event and removes Alice from the enclave. Her tentacles are transferred to the enclave owner. The channel is notified:
+
+```
+Alice has left the workspace. Her automations [list] have been transferred to @owner.
+```
+
+### Via CLI
+
+```bash
+tntc enclave sync <enclave-name> --remove-member alice@company.com
+```
+
+Tentacles owned by the removed member transfer to the enclave owner. The transfer is logged in the audit trail.
+
+## Transferring Tentacle Ownership
+
+The enclave owner can reassign ownership of any tentacle to another member. This is useful after a member departs or when responsibilities shift.
+
+### Via The Kraken
+
+```
+@kraken transfer the price-monitor tentacle to Bob
+```
+
+### Via CLI
+
+```bash
+tntc enclave chown <enclave-name> <tentacle-name> bob@company.com
+```
+
+Only the enclave owner can transfer tentacle ownership. The new owner must be a registered member of the enclave.
+
+## Transferring Enclave Ownership
+
+Enclave ownership follows Slack channel ownership. If the Slack channel owner changes, The Kraken detects it during the next reconciliation cycle and updates the enclave accordingly.
+
+To trigger an immediate reconciliation:
+
+```bash
+tntc enclave sync <enclave-name>
+```
+
+The new owner inherits superuser control over all tentacles in the enclave. The previous owner becomes a regular member (if they remain in the channel) or loses access (if they left).
+
+## Changing Permission Presets
+
+The enclave owner can change who can do what in the enclave at any time.
+
+### Via The Kraken
+
+```
+@kraken let anyone in this channel see what's running
+```
+
+```
+@kraken lock down this workspace so only our team can access it
+```
+
+### Via CLI
+
+```bash
+# Set a named preset on the enclave
+tntc permissions set <enclave-name> --mode open-read
+
+# Set a named preset on a specific tentacle
+tntc permissions chmod member-read <enclave-name> <tentacle-name>
+```
+
+Available presets: `private`, `member-read`, `member-edit` (default), `open-read`, `open-run`.
+
+See [Team Collaboration](/tentacular-docs/concepts/team-collaboration/) for the full preset reference.
+
+## Freezing an Enclave
+
+Freezing pauses cron triggers and prevents new deployments. Running tentacles continue to run until they complete. Freezing is reversible.
+
+Freezing happens automatically when the Slack channel is archived. To freeze manually:
+
+```bash
+tntc enclave sync <enclave-name> --status frozen
+```
+
+To unfreeze (also happens automatically when the Slack channel is unarchived):
+
+```bash
+tntc enclave sync <enclave-name> --status active
+```
+
+While frozen:
+- Running tentacles complete normally
+- Cron triggers are paused (no new scheduled runs)
+- New deployments are blocked
+- Read operations (status, logs, list) work normally
+
+## Deprovisioning an Enclave
+
+Deprovisioning is permanent and irreversible. It stops all tentacles, deletes all exoskeleton resources (Postgres schemas, S3 prefixes), and removes the Kubernetes namespace.
+
+### Via The Kraken
+
+```
+@kraken shut down this workspace
+```
+
+The Kraken asks for confirmation before proceeding:
+
+```
+This will stop all automations and delete all data in this workspace. There is no undo.
+Are you sure? Reply "yes delete everything" to confirm.
+```
+
+### Via CLI
+
+```bash
+tntc enclave deprovision <enclave-name>
+```
+
+The CLI also requires explicit confirmation (`--confirm` flag or an interactive prompt).
+
+:::caution
+Deprovisioning deletes the Kubernetes namespace and all resources within it, including Postgres data and S3 objects scoped to the enclave. Ensure any important data is backed up before proceeding.
+:::
+
+## Auditing Membership
+
+```bash
+# List all members and owner of an enclave
+tntc enclave info <enclave-name>
+
+# List all enclaves you have access to
+tntc enclave list
+```
+
+The `enclave info` output includes:
+- Owner email
+- Member list with registration timestamps
+- Permission preset
+- Exoskeleton service status
+- Tentacle count and quota usage

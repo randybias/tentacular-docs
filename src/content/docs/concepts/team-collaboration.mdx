@@ -1,0 +1,117 @@
+---
+title: Team Collaboration
+description: How teams work together in Tentacular enclaves — membership, permissions, and natural-language governance
+---
+
+Tentacular is designed for teams, not just individuals. Every enclave is a shared workspace where a team can build, deploy, and run tentacles together, with clear rules about who can do what and guardrails that protect critical work.
+
+## Enclave Membership
+
+Enclave membership is derived from Slack. When a user joins the Slack channel that backs an enclave and completes OIDC sign-in, they become a registered member of that enclave. When they leave the channel, they are removed automatically.
+
+There are three roles in every enclave:
+
+| Role | How You Get It | What It Means |
+|------|---------------|---------------|
+| **Owner** | You are the Slack channel owner | Administrative control over the enclave and everything in it |
+| **Member** | You joined the channel and completed OIDC sign-in | Collaborative access, scoped by the enclave's permission preset |
+| **Other** | You are authenticated but not an owner or member | Visitor access, scoped by the enclave's permission preset |
+
+A user can be a member of multiple enclaves simultaneously, with different roles in each. OIDC identity (your email and subject identifier) is the same across all enclaves, but your role varies per enclave.
+
+## Permission Model
+
+Tentacular uses a POSIX-like permission model. Permissions are defined at two layers, and **both must pass** for any operation to succeed.
+
+### Two Layers
+
+```
+Enclave (directory)
+  └── Tentacle (file)
+```
+
+1. **Enclave-level check** — does the caller have the required permission on the enclave?
+2. **Tentacle-level check** — does the caller have the required permission on the specific tentacle?
+
+Both must pass. A member with enclave read but no tentacle read cannot inspect a tentacle. An enclave owner is the exception: the enclave owner is a superuser who can perform any operation on any tentacle within their enclave, regardless of the tentacle's individual permission settings.
+
+### Permission Bits
+
+| Bit | Enclave Meaning | Tentacle Meaning |
+|-----|----------------|------------------|
+| **Read (r)** | List tentacles, view enclave info, see health and status | View tentacle details, logs, events, pods |
+| **Write (w)** | Deploy new tentacles into the enclave, change enclave settings | Update or redeploy a tentacle |
+| **Execute (x)** | Run tentacles in the enclave, trigger workflows | Run or restart a specific tentacle |
+
+### Presets
+
+Named presets cover the common access patterns. The Kraken uses plain language to set these — users never need to know the underlying mode string.
+
+| Preset | Mode | Owner | Member | Other | Use Case |
+|--------|------|-------|--------|-------|----------|
+| `private` | `rwx------` | Full | None | None | Personal enclave or sensitive work |
+| `member-read` | `rwxr-x---` | Full | Read + Run | None | Members can view and run, but only the owner deploys |
+| `member-edit` | `rwxrwx---` | Full | Full | None | **Default** — full collaboration within the team |
+| `open-read` | `rwxrwxr--` | Full | Full | Read-only | Visitors (e.g., executives) can see what's running |
+| `open-run` | `rwxrwxr-x` | Full | Full | Read + Run | Visitors can view and trigger tentacles |
+
+**Default for new enclaves:** `member-edit`. All registered members have full access; non-members see nothing.
+
+**Default for new tentacles:** Inherited from the enclave's default mode annotation.
+
+### Tentacle Ownership Within an Enclave
+
+The person who deploys a tentacle is its owner. Tentacle ownership matters when the tentacle's mode is more restrictive than the enclave's mode — for example, if a member deploys a private tentacle within an otherwise fully collaborative enclave.
+
+| Rule | Details |
+|------|---------|
+| Deployer is owner | Set at deploy time, stored in `tentacular.io/owner` annotation |
+| Owner can update their tentacle | Subject to the tentacle's mode bits |
+| Enclave owner is superuser | Can update or remove any tentacle, regardless of tentacle mode |
+| Ownership transfers on member leave | When a member leaves, their tentacles transfer to the enclave owner |
+| Enclave owner can transfer ownership | To any current member, via The Kraken or `tntc` |
+
+## Natural Language Governance
+
+Teams interact with permissions through natural language, not mode strings or CLI flags. The Kraken translates intent into the right permission changes.
+
+**Examples of what users say:**
+- "Lock down this enclave so only our team can see it" → Kraken sets `member-edit`
+- "Let anyone in this channel see what's running" → Kraken sets `open-read`
+- "Transfer the price-monitor tentacle to Bob" → Kraken calls `enclave_chown`
+- "Carol is leaving — make sure she loses access" → Kraken removes Carol from enclave-members when she leaves the channel
+
+Platform operators and advanced users can set permissions directly with `tntc`:
+
+```bash
+# Set enclave-level preset
+tntc permissions set <enclave> --mode open-read
+
+# Set tentacle-level preset
+tntc permissions chmod member-read <enclave> <tentacle-name>
+```
+
+## Visitor Behavior
+
+When someone who is not a registered member interacts in an enclave channel, The Kraken checks the enclave's `other` permission bits:
+
+- **`other` has no bits set (default):** Kraken identifies the person as unregistered and offers to initiate the registration flow. The enclave owner is notified.
+- **`other` has read bit set (open-read):** Kraken answers read-only questions (status, health, "here's what's running") but declines write or execute requests.
+- **`other` has read + execute bits set (open-run):** Kraken allows the visitor to also trigger tentacles.
+
+A visitor can complete OIDC sign-in (to prove identity) without becoming a registered member. Registration as a full member requires the enclave owner's approval.
+
+## Authentication vs. Registration
+
+These are two distinct steps:
+
+1. **Authentication (OIDC sign-in):** Proves who you are. Required for any interaction with The Kraken beyond passive channel membership.
+2. **Registration (member enrollment):** Grants access based on your identity. Requires the enclave owner to approve.
+
+The Kraken handles both flows in-channel with OIDC device authorization links. No separate administrative UI is needed.
+
+## Bearer Token Access
+
+Bearer tokens bypass all permission checks and are reserved for platform operators. Regular users, AI agents, and The Kraken always use per-user OIDC tokens. This ensures the audit trail captures individual identity for every operation.
+
+See [Multi-Tenancy and Access Control](/tentacular-docs/guides/authorization/) for the full AAA framework.

@@ -1,0 +1,308 @@
+---
+title: Enclave MCP Tools
+description: Full reference for the five enclave MCP tools — parameters, return values, and examples
+---
+
+The MCP server exposes five tools for enclave management. These tools are called by The Kraken and by the `tntc` CLI. They can also be called directly by AI agents.
+
+All enclave tools require OIDC authentication except where noted. Bearer-token requests bypass all authorization checks (platform operators only).
+
+## enclave_provision
+
+**Type:** Write
+
+Creates a new enclave: provisions a Kubernetes namespace, stamps enclave annotations, creates baseline exoskeleton services (Postgres + S3), sets RBAC, configures network policies, and applies a resource quota.
+
+Only the enclave owner (by OIDC email) or a bearer-token caller can provision an enclave.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Enclave name. Must be DNS-1123 compatible (lowercase letters, digits, hyphens, max 63 chars). Typically the slugified Slack channel name. |
+| `owner_email` | string | Yes | OIDC email of the enclave owner. Stored in `tentacular.io/enclave-owner`. |
+| `owner_sub` | string | Yes | OIDC subject identifier (`sub` claim) of the owner. Stored in `tentacular.io/enclave-owner-sub`. |
+| `members` | string[] | No | OIDC emails of initial members. Can be empty — members are added via `enclave_sync`. |
+| `platform` | string | Yes | Collaboration platform. Currently `"slack"`. Future: `"discord"`, `"teams"`. |
+| `channel_id` | string | Yes | Platform-specific channel identifier (e.g., Slack channel ID `C08XXXXXXX`). |
+| `channel_name` | string | Yes | Human-readable channel name (display name). Used for user-facing references. |
+| `sizing` | string | No | Resource quota preset: `"small"`, `"medium"`, `"large"`. Default: `"medium"`. |
+| `mode` | string | No | Initial permission preset or mode string. Default: `"member-edit"` (`rwxrwx---`). |
+
+### Sizing Presets
+
+| Preset | CPU | Memory | Storage | Typical Use |
+|--------|-----|--------|---------|-------------|
+| `small` | 1 core | 2Gi | 10Gi | API integrations, text processing, notifications |
+| `medium` | 2 cores | 4Gi | 50Gi | File processing, moderate databases, image work |
+| `large` | 4 cores | 8Gi | 100Gi | Large datasets, media processing, many concurrent tentacles |
+
+### Return Value
+
+```json
+{
+  "enclave": "marketing-automations",
+  "namespace": "marketing-automations",
+  "status": "active",
+  "owner": "alice@company.com",
+  "members": [],
+  "exo_services": {
+    "postgres": "provisioned",
+    "s3": "provisioned",
+    "nats": "not_provisioned",
+    "spire": "not_provisioned"
+  },
+  "sizing": "medium",
+  "mode": "rwxrwx---",
+  "preset": "member-edit",
+  "created_at": "2026-04-03T12:00:00Z"
+}
+```
+
+### Example
+
+```bash
+tntc enclave provision \
+  --name marketing-automations \
+  --owner alice@company.com \
+  --channel-id C08XXXXXXX \
+  --channel-name marketing-automations \
+  --sizing medium
+```
+
+---
+
+## enclave_info
+
+**Type:** Read
+
+Returns the current state of a single enclave, including membership, exoskeleton service status, permission settings, tentacle count, and quota usage.
+
+Callers must have enclave read permission (`r` bit). With `member-edit` (default), all members can call this tool.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Enclave name. |
+
+### Return Value
+
+```json
+{
+  "enclave": "marketing-automations",
+  "display_name": "marketing-automations",
+  "namespace": "marketing-automations",
+  "status": "active",
+  "owner": "alice@company.com",
+  "owner_sub": "auth0|abc123",
+  "members": [
+    "alice@company.com",
+    "bob@company.com",
+    "carol@company.com"
+  ],
+  "member_count": 3,
+  "platform": "slack",
+  "channel_id": "C08XXXXXXX",
+  "channel_name": "marketing-automations",
+  "mode": "rwxrwx---",
+  "preset": "member-edit",
+  "exo_services": {
+    "postgres": "provisioned",
+    "s3": "provisioned",
+    "nats": "not_provisioned",
+    "spire": "not_provisioned"
+  },
+  "sizing": "medium",
+  "tentacle_count": 3,
+  "quota": {
+    "cpu_limit": "2",
+    "memory_limit": "4Gi",
+    "storage_limit": "50Gi",
+    "cpu_used": "0.4",
+    "memory_used": "512Mi"
+  },
+  "created_at": "2026-04-03T12:00:00Z",
+  "updated_at": "2026-04-03T14:30:00Z"
+}
+```
+
+### Example
+
+```bash
+tntc enclave info marketing-automations
+```
+
+---
+
+## enclave_list
+
+**Type:** Read
+
+Lists all enclaves the caller has access to. With OIDC authentication, returns enclaves where the caller is the owner, a member, or has other-level read access. With bearer-token authentication, returns all enclaves in the cluster.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `status` | string | No | Filter by status: `"active"`, `"frozen"`, `"all"`. Default: `"all"`. |
+
+### Return Value
+
+```json
+{
+  "enclaves": [
+    {
+      "enclave": "marketing-automations",
+      "display_name": "marketing-automations",
+      "status": "active",
+      "owner": "alice@company.com",
+      "member_count": 3,
+      "tentacle_count": 3,
+      "mode": "rwxrwx---",
+      "preset": "member-edit",
+      "caller_role": "owner",
+      "created_at": "2026-04-03T12:00:00Z"
+    },
+    {
+      "enclave": "platform-ops",
+      "display_name": "platform-ops",
+      "status": "active",
+      "owner": "dave@company.com",
+      "member_count": 5,
+      "tentacle_count": 7,
+      "mode": "rwxrwx---",
+      "preset": "member-edit",
+      "caller_role": "member",
+      "created_at": "2026-03-15T09:00:00Z"
+    }
+  ],
+  "total": 2
+}
+```
+
+### Example
+
+```bash
+tntc enclave list
+tntc enclave list --status active
+```
+
+---
+
+## enclave_sync
+
+**Type:** Write
+
+Updates enclave state. Used by The Kraken to keep membership, ownership, channel name, and enclave status in sync with Slack. Can also be called directly for manual management operations.
+
+The enclave owner or a bearer-token caller can call this tool. Members cannot call `enclave_sync` — it is an owner-only administrative operation.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Enclave name. |
+| `members` | string[] | No | Full replacement member list (OIDC emails). Replaces the existing member list entirely when provided. |
+| `add_members` | string[] | No | OIDC emails to add to the current member list. |
+| `remove_members` | string[] | No | OIDC emails to remove from the current member list. |
+| `owner_email` | string | No | New owner email. Updates `tentacular.io/enclave-owner`. |
+| `owner_sub` | string | No | New owner OIDC subject identifier. |
+| `channel_name` | string | No | Updated display name (after Slack channel rename). Does not change the K8s namespace name. |
+| `status` | string | No | New enclave status: `"active"` or `"frozen"`. |
+| `mode` | string | No | New permission preset or mode string. |
+| `sizing` | string | No | New sizing preset. Applies updated resource quota to the namespace. |
+
+### Return Value
+
+```json
+{
+  "enclave": "marketing-automations",
+  "updated_fields": ["members", "channel_name"],
+  "member_count": 4,
+  "status": "active",
+  "updated_at": "2026-04-03T15:00:00Z"
+}
+```
+
+### Examples
+
+```bash
+# Add a member manually
+tntc enclave sync marketing-automations --add-member dave@company.com
+
+# Remove a member
+tntc enclave sync marketing-automations --remove-member carol@company.com
+
+# Transfer ownership
+tntc enclave sync marketing-automations --owner bob@company.com --owner-sub auth0|def456
+
+# Freeze the enclave
+tntc enclave sync marketing-automations --status frozen
+
+# Unfreeze the enclave
+tntc enclave sync marketing-automations --status active
+
+# Resize to large
+tntc enclave sync marketing-automations --sizing large
+```
+
+---
+
+## enclave_deprovision
+
+**Type:** Destructive
+
+Permanently deletes an enclave. Stops all tentacles, cleans up exoskeleton services (Postgres schemas, S3 prefixes), removes RBAC resources, and deletes the Kubernetes namespace.
+
+This operation is irreversible. All data scoped to the enclave is permanently destroyed.
+
+Only the enclave owner or a bearer-token caller can deprovision an enclave.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Enclave name. |
+| `confirm` | boolean | Yes | Must be `true`. Explicit confirmation required to prevent accidental deletion. |
+
+### Return Value
+
+```json
+{
+  "enclave": "marketing-automations",
+  "deprovisioned": true,
+  "tentacles_removed": 3,
+  "exo_cleanup": {
+    "postgres_schemas_removed": 3,
+    "s3_prefixes_removed": 3,
+    "nats_subjects_removed": 0
+  },
+  "namespace_deleted": true,
+  "deprovisioned_at": "2026-04-03T16:00:00Z"
+}
+```
+
+### Example
+
+```bash
+tntc enclave deprovision marketing-automations --confirm
+```
+
+:::caution
+There is no undo for `enclave_deprovision`. Postgres data and S3 objects are deleted. Ensure any important data is backed up before calling this tool.
+:::
+
+---
+
+## Authorization Summary
+
+| Tool | Required Permission | Who Can Call |
+|------|--------------------|----|
+| `enclave_provision` | None (creates new resource) | Any authenticated caller; owner is set by `owner_email` parameter |
+| `enclave_info` | Enclave read (`r`) | Owner, members, others with read preset |
+| `enclave_list` | Enclave read (`r`) per enclave | Returns only accessible enclaves for OIDC callers; all for bearer-token |
+| `enclave_sync` | Enclave owner | Enclave owner or bearer-token only |
+| `enclave_deprovision` | Enclave owner | Enclave owner or bearer-token only, requires `confirm: true` |
+
+See [Enclave Concepts](/tentacular-docs/concepts/enclaves/) and [Team Collaboration](/tentacular-docs/concepts/team-collaboration/) for the full permission model.

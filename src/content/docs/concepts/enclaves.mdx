@@ -1,0 +1,85 @@
+---
+title: Enclaves
+description: The enclave — Tentacular's primary abstraction for team-scoped workflow environments
+---
+
+An enclave is the primary organizational unit in Tentacular. It binds a Slack channel, a Kubernetes namespace, shared infrastructure services, and team membership into a single governed unit. When a team works in Tentacular, they work inside an enclave.
+
+## What Is an Enclave?
+
+An enclave is more than a namespace. Where a Kubernetes namespace is a cluster-level isolation boundary, an enclave is a complete workspace that a team owns, operates, and collaborates in — with an identity rooted in Slack rather than in Kubernetes.
+
+```
+Enclave = Slack channel
+        + Kubernetes namespace
+        + Exoskeleton services (Postgres, S3, optionally NATS/SPIRE)
+        + Team membership (owner + registered members)
+        + POSIX permission policy
+```
+
+A Tentacular cluster hosts many enclaves. Each enclave is isolated from the others — tentacles in one enclave cannot see or access resources in another.
+
+## Binding
+
+Each enclave is bound to exactly one Slack channel. The binding is what makes enclaves feel natural to enterprise teams: you work where you already are. The Kraken bot mediates all interaction, so the underlying Kubernetes namespace is an implementation detail that most users never see.
+
+| Enclave Component | Bound To |
+|-------------------|----------|
+| Identity | Slack channel name (slugified to DNS-1123) |
+| Ownership | Slack channel owner |
+| Membership | Slack channel members who have completed OIDC sign-in |
+| Namespace | Kubernetes namespace with the same name as the enclave |
+| Storage | Postgres database + S3 bucket scoped to the enclave |
+| Network | Private exoskeleton services isolated within the namespace |
+
+The Kubernetes namespace name is set at enclave creation from the Slack channel name and **never changes**, even if the channel is renamed. The display name follows the channel name, but the internal name is stable.
+
+## Roles
+
+Every enclave has three principal classes, following a POSIX-like model:
+
+| Role | Who | Privileges |
+|------|-----|------------|
+| **Owner** | Slack channel owner | Full control over the enclave and all tentacles within it. Can add/remove members, change permissions, transfer ownership, freeze or deprovision the enclave. Superuser within their enclave — can modify any tentacle regardless of who deployed it. |
+| **Member** | Registered channel members who have completed OIDC sign-in | Can deploy, run, and manage their own tentacles within the enclave. Exact permissions depend on the enclave's mode preset. |
+| **Other** | Authenticated users who are not the owner or a registered member | Visitors. Access depends on the enclave's mode preset — typically read-only or none at all. |
+
+Membership is managed through Slack. When a user joins the channel and completes OIDC sign-in, The Kraken registers them as a member. When they leave the channel, they are removed automatically.
+
+See [Team Collaboration](/tentacular-docs/concepts/team-collaboration/) for the full permission model.
+
+## Lifecycle
+
+Enclaves move through four states:
+
+```
+provision → active → frozen → deprovision
+```
+
+| State | What Can Happen |
+|-------|-----------------|
+| **Provisioning** | Namespace, exoskeleton services, RBAC, network policies, and resource quota are being created. Transient — completes in seconds. |
+| **Active** | Normal operation. Members can deploy tentacles, run them, and iterate. Cron triggers fire. |
+| **Frozen** | Triggered when the Slack channel is archived. Running tentacles continue, but no new deployments are allowed and cron triggers are paused. Unarchiving the channel unfreezes the enclave. |
+| **Deprovisioned** | All tentacles stopped, all exoskeleton services cleaned up, namespace deleted. Irreversible. Requires explicit confirmation from the enclave owner. |
+
+## Exoskeleton Services
+
+Every enclave is provisioned with a baseline set of shared infrastructure services called the exoskeleton:
+
+| Service | Scope | Notes |
+|---------|-------|-------|
+| **Postgres** | One database per enclave, one schema per tentacle | Tentacles in the same enclave can share data by querying each other's schemas |
+| **S3/RustFS** | One bucket per enclave, one prefix per tentacle | Files are shared across tentacles within the enclave |
+| **NATS** | Optional. One subject hierarchy per enclave | Auto-provisioned when a tentacle contract declares a NATS dependency |
+| **SPIRE** | Optional. One trust domain per enclave | Auto-provisioned when a tentacle contract declares an identity dependency |
+
+## Diagram
+
+See the enclave architecture diagram (`scratch/enclave-architecture.drawio`) for a visual overview of how enclaves, namespaces, exoskeleton services, and tentacles relate.
+
+## Relationship to Namespaces
+
+In earlier Tentacular releases, namespaces were the primary tenant boundary. Enclaves replace namespaces as the user-facing abstraction. Internally, each enclave still maps 1:1 to a Kubernetes namespace, and the namespace tools (`ns_create`, `ns_list`, etc.) are deprecated in favor of the enclave tools.
+
+Platform operators who need emergency access can still work at the namespace/deployment level using `tntc` with a bearer token. Regular users and The Kraken always operate through the enclave abstraction.
