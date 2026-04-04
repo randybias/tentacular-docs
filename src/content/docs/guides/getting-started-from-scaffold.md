@@ -66,13 +66,15 @@ Files:
 
 ### 3. Create the Tentacle
 
-Initialize a new tentacle from the scaffold:
+Initialize a new tentacle from the scaffold. Use `--enclave` to place it in an enclave from the start:
 
 ```bash
-tntc scaffold init uptime-tracker acme-uptime --no-params
+tntc scaffold init uptime-tracker acme-uptime --enclave marketing-automations --no-params
 ```
 
-This creates `~/tentacles/acme-uptime/` with all scaffold files plus a `tentacle.yaml` recording the scaffold provenance.
+This creates `~/tentacles/marketing-automations/acme-uptime/` with all scaffold files plus a `tentacle.yaml` recording the scaffold provenance.
+
+Without `--enclave`, the tentacle is created at `~/tentacles/acme-uptime/` and you'll need to specify `--enclave` at deploy time. Providing it during init keeps the workspace layout consistent with the [three-layer model](/tentacular-docs/concepts/three-layers/).
 
 ### 4. Configure Parameters
 
@@ -162,9 +164,9 @@ tntc status acme-uptime
 
 After completing these steps, you have:
 
-- A tentacle at `~/tentacles/acme-uptime/` with real configuration values
+- A tentacle at `~/tentacles/marketing-automations/acme-uptime/` with real configuration values
 - A `tentacle.yaml` recording that it came from `uptime-tracker` scaffold v1.0
-- A deployed and running workflow on your cluster
+- A deployed and running workflow on your cluster in the `marketing-automations` enclave
 
 ## Next Steps
 
