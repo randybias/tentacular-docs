@@ -1,0 +1,188 @@
+<mxfile host="app.diagrams.net" agent="Claude Code" version="26.0.0">
+  <diagram id="enclave-isolation" name="Enclave Isolation Model">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Enclave Isolation Model" style="text;html=1;fontSize=18;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="384" y="15" width="400" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Slack -->
+        <mxCell id="slack" value="Slack" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="484" y="70" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Channel-scoped section -->
+        <mxCell id="channel-scope" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="520" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="cs-title" value="Channel-Scoped Operations" style="text;html=1;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="140" y="158" width="320" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cs-rule" value="All operations in a channel are scoped to that channel's enclave." style="text;html=1;fontSize=10;fontStyle=2;align=center;fontColor=#336699;" vertex="1" parent="1">
+          <mxGeometry x="80" y="183" width="440" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Channel A -->
+        <mxCell id="chan-a" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0fe;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="230" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-a-title" value="#mktg-team" style="text;html=1;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="225" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-a-user" value="Alice: @Kraken scaffold price-monitor" style="text;html=1;fontSize=9;align=left;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="75" y="255" width="200" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-a-bot" value="Kraken: Scaffolding in mktg-team..." style="text;html=1;fontSize=9;align=left;fontColor=#6633CC;" vertex="1" parent="1">
+          <mxGeometry x="75" y="275" width="200" height="16" as="geometry" />
+        </mxCell>
+
+        <mxCell id="enc-a" value="Enclave: mktg-team" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="310" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ns-a" value="K8s namespace: mktg-team" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="350" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="git-a" value="Git: enclaves/mktg-team/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="385" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="disk-a" value="Disk: ~/tentacles/mktg-team/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="420" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="iso-a" value="No cross-enclave access" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#CC0000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="455" width="190" height="16" as="geometry" />
+        </mxCell>
+
+        <!-- Channel B -->
+        <mxCell id="chan-b" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0fe;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="310" y="220" width="230" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-b-title" value="#infra-alerts" style="text;html=1;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="225" width="150" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-b-user" value="Bob: @Kraken deploy node-health" style="text;html=1;fontSize=9;align=left;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="325" y="255" width="200" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="chan-b-bot" value="Kraken: Deploying in infra-alerts..." style="text;html=1;fontSize=9;align=left;fontColor=#6633CC;" vertex="1" parent="1">
+          <mxGeometry x="325" y="275" width="200" height="16" as="geometry" />
+        </mxCell>
+
+        <mxCell id="enc-b" value="Enclave: infra-alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="310" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ns-b" value="K8s namespace: infra-alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="330" y="350" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="git-b" value="Git: enclaves/infra-alerts/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="330" y="385" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="disk-b" value="Disk: ~/tentacles/infra-alerts/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="330" y="420" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="iso-b" value="No cross-enclave access" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#CC0000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="455" width="190" height="16" as="geometry" />
+        </mxCell>
+
+        <!-- DM-scoped section -->
+        <mxCell id="dm-scope" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="600" y="150" width="530" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-title" value="DM-Scoped Operations" style="text;html=1;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="158" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-rule" value="Cross-enclave work only via Direct Message." style="text;html=1;fontSize=10;fontStyle=2;align=center;fontColor=#996600;" vertex="1" parent="1">
+          <mxGeometry x="660" y="183" width="400" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- DM conversation -->
+        <mxCell id="dm-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4e6;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="220" width="490" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-conv-title" value="DM with @Kraken" style="text;html=1;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="770" y="225" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-msg1" value="Alice: List all my enclaves" style="text;html=1;fontSize=10;align=left;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="640" y="260" width="250" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-msg2" value="Kraken: You have 2 enclaves: mktg-team, infra-alerts" style="text;html=1;fontSize=10;align=left;fontColor=#6633CC;" vertex="1" parent="1">
+          <mxGeometry x="640" y="280" width="350" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-msg3" value="Alice: Compare tentacles across both enclaves" style="text;html=1;fontSize=10;align=left;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="640" y="310" width="350" height="16" as="geometry" />
+        </mxCell>
+
+        <!-- Allowed operations -->
+        <mxCell id="dm-ops" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4e6;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="340" width="240" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-ops-title" value="Allowed in DM:" style="text;html=1;fontSize=11;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="630" y="345" width="200" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-ops-list" value="- List enclaves&#xa;- Compare across enclaves&#xa;- Admin operations&#xa;- Create new enclave" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="630" y="365" width="220" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NOT allowed -->
+        <mxCell id="dm-no" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="870" y="340" width="240" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-no-title" value="NOT in channel:" style="text;html=1;fontSize=11;fontStyle=1;align=left;fontColor=#CC0000;" vertex="1" parent="1">
+          <mxGeometry x="880" y="345" width="200" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="dm-no-list" value="- Deploy to wrong enclave&#xa;- Access other enclave's secrets&#xa;- Modify other enclave's tentacles&#xa;- List other enclaves" style="text;html=1;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="880" y="365" width="220" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- The Kraken -->
+        <mxCell id="kraken" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="620" y="500" width="490" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="kraken-title" value="The Kraken (Agent)" style="text;html=1;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="770" y="505" width="200" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kraken-resolve" value="Context Resolution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="640" y="540" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="kraken-resolve-list" value="channel_id  ->  enclave_name&#xa;user_id     ->  owner_email (JWT)&#xa;Never asks user for either" style="text;html=1;fontSize=9;align=left;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="650" y="565" width="200" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kraken-auth" value="Transitive Trust" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="880" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="kraken-auth-list" value="Acts AS the user (not as itself)&#xa;TNTC_ACCESS_TOKEN from JWT&#xa;All K8s annotations reflect user" style="text;html=1;fontSize=9;align=left;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="890" y="565" width="190" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kraken-tools" value="tntc CLI + MCP tools pass --enclave from resolved context" style="text;html=1;fontSize=10;fontStyle=2;align=center;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="650" y="650" width="440" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Isolation barrier -->
+        <mxCell id="barrier" value="" style="shape=line;strokeColor=#CC0000;strokeWidth=3;dashed=1;dashPattern=8 4;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="220" as="sourcePoint" />
+            <mxPoint x="295" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Arrows from Slack -->
+        <mxCell id="slack-a" style="endArrow=classic;html=1;strokeWidth=1.5;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="484" y="100" as="sourcePoint" />
+            <mxPoint x="300" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="slack-b" style="endArrow=classic;html=1;strokeWidth=1.5;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="684" y="100" as="sourcePoint" />
+            <mxPoint x="865" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
