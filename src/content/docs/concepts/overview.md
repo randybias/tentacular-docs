@@ -55,4 +55,4 @@ Tentacular is, in fact, an ideal companion for a hardened AI assistant system. A
 
 ## Key Terminology
 
-Throughout the Tentacular documentation, **tentacle** is used in favor of "workflow." The term "workflow" may appear when contrasting with traditional systems, but the Tentacular-native term is always **tentacle**. See the [Glossary](/tentacular-docs/concepts/glossary/) for all platform-specific terms.
+Throughout the Tentacular documentation, **tentacle** is used in favor of "workflow." The term "workflow" may appear when contrasting with traditional systems, but the Tentacular-native term is always **tentacle**. See the [Glossary](/tentacular-docs/reference/glossary/) for all platform-specific terms.

@@ -3,7 +3,7 @@ title: Tentacular
 description: Agentic-friendly platform for secure, durable, autonomic workflows
 template: splash
 hero:
-  tagline: Secure Workflows as a Service for Agentic Teams — enclave-scoped, token-efficient, hardened business logic on Kubernetes.
+  tagline: Agentic Automation for Enterprise Teams — secure by design, token-efficient, and simple to use.
   actions:
     - text: Get Started
       link: /tentacular-docs/guides/quickstart/
@@ -23,50 +23,52 @@ import ContractDiagram from '../../components/ContractDiagram.tsx';
 
 ## The Problem
 
-AI agents performing repetitive tasks burn massive amounts of tokens doing the same work over and over. Traditional workflow systems like n8n are designed for humans — GUIs, dashboards, hundreds of configuration options — and agents struggle to use them efficiently. When agents *do* build automation (shell scripts, cron jobs, arbitrary code), there's no way to constrain what they access, making prompt injection and data exfiltration trivial.
+Enterprise teams automate repetitive work with AI agents — but the results are fragile, ungoverned, and expensive. Agents redo the same tasks from scratch every time, burning tokens on work that should be done once and run forever. Traditional workflow tools like n8n are designed for humans clicking through GUIs, not agents working through conversation. And when agents *do* build automation on their own — shell scripts, cron jobs, arbitrary code — there's no way to control what they access, making it impossible to trust in production.
 
-The result: organizations either waste tokens on repetitive agent work, or they let agents build unsecured automation they can't trust in production.
+The result: teams either waste money on repetitive agent work, or they get automation they can't secure, audit, or hand off.
 
 <img src="/tentacular-docs/banner.png" alt="Tentacular — Security-First Workflow Engine for Kubernetes" style="width:100%;border-radius:8px;margin:2rem 0;" />
 
 ## What Tentacular Does
 
-Tentacular lets AI agents build **secure, durable, reusable workflows** — called **tentacles** — and deploy them to Kubernetes with a zero-trust security model. Think of it as enshrining AI agent work into "muscle memory": once an agent builds a tentacle, it runs autonomously, efficiently, and safely — without burning tokens on repetitive tasks.
+Tentacular lets teams turn repetitive work into **secure, durable, reusable workflows** — called **tentacles**. If you do something once, ask an AI agent to do it. If you're going to do it again and again, have the agent build a tentacle that runs on its own — on a schedule, on a trigger, or on demand.
 
-The key innovation is the **workflow contract**. A single artifact declares the DAG, its dependencies, and every external service the tentacle needs. From this contract, the platform automatically generates a "straight jacket" — Deno runtime permissions, Kubernetes NetworkPolicy, and secrets validation — enforced at runtime, network, and kernel levels simultaneously. An agent authors the contract; the platform makes it impossible to access anything undeclared.
+Teams work through Slack. A team's channel becomes their **enclave** — a private workspace with its own compute, storage, and services. The Kraken, Tentacular's AI agent, handles everything: building workflows, deploying them, and managing them over time. No one needs to touch a terminal, write infrastructure code, or learn Kubernetes.
 
 ## How It Differs
 
-**From workflow systems (n8n, Argo, Tekton):** Tentacular is agent-first, not human-first. No GUI, no predefined node library. Agents code custom TypeScript DAGs with only the code they need — dramatically reducing the attack surface. In testing, the same AI news roundup took hours via n8n but about 5 minutes with Tentacular.
+Tentacular takes a very different approach to agentic workflows. It is first and foremost structured around allowing teams to build and manage workflows together and to do it naturally. Secondly, it not only wants to be simple for humans but also easy for agents to drive. Thirdly, it wants to make sure that workflows are secure by default. Once is an accident; twice is a coincidence; three times is a pattern. Patterns should be enshrined into trusted workflows. That's Tentacular.
 
-**From CI/CD pipelines (Dagger, Tekton, ArgoCD):** Tentacles are durable business automations (news digests, PR reviews, health monitors), not ephemeral build jobs. They persist, run on schedules, respond to events, and are sealed at deployment — each runs with only the permissions its contract declares.
+**From workflow systems (n8n, Argo, Tekton):** Tentacular is agent-first, not human-first. There's no GUI to configure and no predefined node library to navigate. Agents build exactly what the team needs through natural language — and each workflow is locked down to only the resources it declares. In testing, the same AI news roundup took hours via n8n but about 5 minutes with Tentacular.
 
-**From AI assistants (OpenClaw):** Tentacular is an ideal *companion* to AI assistants, not a replacement. Where assistants provide open-ended flexibility, Tentacular provides hardened, governed, durable workflows. A future enterprise AI assistant could restrict workflow creation to tentacles, ensuring compliance and oversight for any workflow that touches sensitive data.
+**From CI/CD pipelines (Dagger, Tekton, ArgoCD):** Tentacles are durable business automations — competitor monitoring, report generation, health checks — not ephemeral build jobs. They persist, run on schedules, respond to events, and are governed by a security contract that limits what they can access.
+
+**From AI assistants (OpenClaw):** Tentacular is an ideal *companion* to AI assistants, not a replacement. Assistants provide open-ended flexibility; Tentacular provides hardened, governed, durable workflows. An enterprise AI assistant could restrict workflow creation to tentacles, ensuring compliance and oversight for anything that touches sensitive data.
 
 ## How It Works
 
 <CardGrid>
-  <Card title="Hardened Workflow Plane" icon="shield">
-    A Kubernetes-native runtime for hosting and running tentacles with defense-in-depth sandboxing at every layer.
+  <Card title="Team Workspaces" icon="open-book">
+    Each Slack channel becomes an **enclave** — a private workspace where the team builds, deploys, and manages workflows together. Membership, permissions, and services are all managed through Slack.
   </Card>
-  <Card title="Secure Control Plane" icon="setting">
-    An in-cluster MCP server for managing deployed tentacles with authenticated agent access via OAuth and SSO.
+  <Card title="Security by Design" icon="shield">
+    Every workflow declares exactly what it needs. The platform enforces that declaration at runtime, network, and kernel levels — making prompt injection, data exfiltration, and privilege escalation structurally difficult.
   </Card>
-  <Card title="Scaffold Library" icon="list-format">
-    A set of reusable scaffolds providing common patterns as starting points for agents and humans. [Browse the scaffolds](https://randybias.github.io/tentacular-scaffolds).
+  <Card title="Natural Language, Not YAML" icon="puzzle">
+    Teams describe what they want in plain English. The Kraken — or any AI agent using the [Agent Skill](/tentacular-docs/concepts/agent-skill/) — handles the design, coding, testing, and deployment.
   </Card>
-  <Card title="Agent Skill" icon="puzzle">
-    An instruction set that allows general-purpose agents (Claude Code, Codex, Gemini) to design, build, and deploy tentacles.
+  <Card title="Ready-Made Starting Points" icon="list-format">
+    A [scaffold library](https://randybias.github.io/tentacular-scaffolds) of production-ready templates accelerates common patterns — news digests, health monitors, data pipelines — so agents aren't starting from scratch.
   </Card>
 </CardGrid>
 
 The process is straightforward:
 
-1. A human instructs an agent in natural language: *"Build me a weekly AI news roundup that posts to Slack"*
-2. The agent, using the [Agent Skill](/tentacular-docs/concepts/agent-skill/), designs a workflow contract — the DAG, its nodes, dependencies, and credentials
-3. It builds, tests, and deploys the tentacle to the target Kubernetes cluster
-4. The contract has a dynamic "straight jacket" applied at deployment — the tentacle can only access what was declared
-5. The tentacle runs autonomously on schedule. It can be iterated on, managed, and audited.
+1. A team creates a Slack channel and invites The Kraken
+2. Someone describes what they need: *"Monitor our top 5 competitors' pricing pages and post a summary every Monday"*
+3. The Kraken asks clarifying questions, builds the workflow, tests it, and deploys it
+4. The workflow runs autonomously — on a schedule, on a trigger, or on demand
+5. The team iterates through conversation. No terminals, no code, no infrastructure.
 
 ## Example: A Tentacle Visualized
 
@@ -87,18 +89,28 @@ The contract is not documentation — it is the **enforceable security policy**.
 
 Zero trust at every layer: runtime (Deno on distroless — no shell, no toolchain), network (default-deny NetworkPolicy), kernel (gVisor syscall interception), and Kubernetes (non-root, read-only filesystem, no SA token, dropped capabilities).
 
-## Security and Platform Features
+## Platform Features
 
-| Feature | Benefit |
-|---------|---------|
-| Contract-driven zero-trust sandboxing | Tentacles can only access declared resources — enforced at runtime, network, and kernel levels |
-| Hardened TypeScript DAG engine with Deno | Runs on distroless Deno: no toolchain, no shell, no way to modify the code |
-| Kernel isolation using gVisor | Syscall interception makes privilege escalation extremely difficult |
-| In-cluster MCP control plane | Authenticated agent access via OAuth with SSO support |
-| Enclave-provisioned Exoskeleton | Postgres and RustFS provisioned automatically per enclave; NATS and SPIRE on demand |
-| SPIFFE-based workload identity | Identity attestation with transitive trust support |
-| Local TypeScript module cache | Supply-chain security with package pinning and air-gap readiness |
-| Scaffold library | Starting points for common patterns -- news digests, PR reviews, health monitors |
+| Category | Feature | What It Means |
+|----------|---------|---------------|
+| **Team Collaboration** | Enclaves | Each Slack channel is a private workspace with its own compute, storage, and team membership |
+| | The Kraken | Slack-native AI agent — teams interact through conversation, not terminals |
+| | Transitive trust | The agent acts as the user, not as a service account — all actions are attributable |
+| | POSIX-style permissions | Owner, member, and other roles with familiar read/write/execute semantics |
+| **Security** | Contract-driven sandboxing | Workflows can only access what they declare — enforced at runtime, network, and kernel levels |
+| | gVisor kernel isolation | Syscall interception makes privilege escalation structurally difficult |
+| | Read-only containers | No shell, no toolchain, no way to modify code at runtime |
+| | Default-deny networking | Each workflow gets only the egress rules its contract requires |
+| **Workflows** | TypeScript DAG engine | Workflows are code, not config — agents write exactly what the team needs |
+| | Sidecar containers | Native binaries (ffmpeg, Chromium, ML models) run alongside workflows in the same pod |
+| | Shared node modules | Common code is shared across workflow nodes without duplication |
+| | Scaffold library | [Production-ready templates](https://randybias.github.io/tentacular-scaffolds) for common patterns — get started in minutes |
+| | Cron and event triggers | Workflows run on schedules, respond to events, or run on demand |
+| **Infrastructure** | Exoskeleton services | Postgres, S3-compatible storage, and optionally NATS and SPIRE — provisioned automatically per enclave |
+| | In-cluster MCP server | Authenticated control plane with OAuth/SSO — agents and CLI both use the same API |
+| | Git-backed state | Optional git monorepo as system of record for all workflow source, metadata, and encrypted secrets |
+| | Local module cache | Supply-chain security with package pinning and air-gap readiness |
+| | Multi-arch builds | All components build for both AMD64 and ARM64 |
 
 ## FAQ
 

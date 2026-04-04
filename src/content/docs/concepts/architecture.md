@@ -81,13 +81,32 @@ Sidecars enable workflows to use native binaries (ffmpeg, ImageMagick, Chromium,
 
 ```
 tntc
-├── enclave provision   Provision a new enclave (via MCP)
-├── enclave info        Show enclave status and members (via MCP)
-├── enclave list        List accessible enclaves (via MCP)
-├── enclave sync        Update enclave membership or settings (via MCP)
-├── enclave deprovision Permanently delete an enclave (via MCP)
-├── enclave chown       Transfer tentacle ownership (via MCP)
-├── init <name>         Scaffold new tentacle project
+├── enclave
+│   ├── provision       Provision a new enclave (via MCP)
+│   ├── info            Show enclave status and members (via MCP)
+│   ├── list            List accessible enclaves (via MCP)
+│   ├── sync            Update enclave membership or settings (via MCP)
+│   └── deprovision     Permanently delete an enclave (via MCP)
+├── scaffold
+│   ├── list            List available scaffolds
+│   ├── search          Search scaffolds by keyword
+│   ├── info            Show scaffold details
+│   ├── init            Create tentacle from scaffold (--enclave flag)
+│   ├── extract         Extract scaffold from existing tentacle
+│   ├── sync            Refresh public quickstart cache
+│   └── params          Show/validate scaffold parameters
+├── state
+│   ├── init            Initialize git-backed state repo
+│   ├── status          Show state repo status (dirty files, push status)
+│   └── commit          Commit tentacle changes to state repo
+├── secrets
+│   ├── check           Validate secrets against contract
+│   └── init            Initialize secrets structure
+├── catalog
+│   ├── list            List catalog entries (legacy)
+│   ├── search          Search catalog (legacy)
+│   ├── info            Show catalog entry (legacy)
+│   └── init            Create from catalog (legacy)
 ├── validate [dir]      Validate workflow.yaml spec
 ├── dev [dir]           Local dev server with hot-reload
 ├── test [dir/node]     Run node or pipeline tests
@@ -101,11 +120,12 @@ tntc
 ├── audit <name>        Run security audit (via MCP)
 ├── cluster check       Preflight cluster validation (via MCP)
 ├── cluster profile     Cluster capability snapshot (via MCP)
-├── scaffold list/search/info/init   Browse and scaffold from templates
+├── configure           Set CLI configuration
 ├── login               Authenticate via OIDC Device Authorization Grant
 ├── logout              Clear stored credentials
 ├── whoami              Show current authenticated identity
-└── visualize [dir]     Generate Mermaid DAG diagram
+├── visualize [dir]     Generate Mermaid DAG diagram
+└── version             Show version info
 ```
 
 ## Deno Engine Architecture
