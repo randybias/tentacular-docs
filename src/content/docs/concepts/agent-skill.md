@@ -97,28 +97,27 @@ The skill teaches agents to use the right interface for each task:
 
 ## Workspace Conventions
 
-The skill establishes standard conventions for workspace layout:
+The skill establishes standard conventions for workspace layout. Tentacles are organized by enclave:
 
 ```
-~/tentacles/                    # Default workspace (configurable)
-├── my-first-tentacle/
-│   ├── workflow.yaml           # Tentacle definition
-│   ├── nodes/                  # TypeScript node files
-│   ├── tests/fixtures/         # Test fixtures
-│   ├── .secrets.yaml           # Local secrets (gitignored)
-│   └── .secrets.yaml.example   # Secrets template (committed)
-├── uptime-prober/
-│   └── ...
-├── .secrets/                   # Shared secrets pool
-│   ├── slack                   # Shared across tentacles
-│   └── github
-└── .gitignore                  # Auto-created by tntc init-workspace
+~/tentacles/                           # All tentacles, organized by enclave
+├── mktg-team/                         #   enclave directory
+│   ├── price-monitor/                 #     a tentacle
+│   │   ├── workflow.yaml
+│   │   ├── nodes/
+│   │   ├── tests/fixtures/
+│   │   ├── .secrets.yaml              #   local secrets (gitignored)
+│   │   └── .secrets.yaml.example      #   secrets template (committed)
+│   └── alert-dispatcher/              #     another tentacle
+├── infra-alerts/                      #   another enclave
+│   └── node-health/
+└── .gitignore
 ```
 
-The workspace is initialized with:
+When using `--enclave`, the scaffold command creates tentacles in the right place:
 ```bash
-tntc init-workspace            # creates ~/tentacles with .secrets/ and .gitignore
-tntc init-workspace /custom/path  # custom location
+tntc scaffold init uptime-tracker my-monitor --enclave mktg-team
+# Creates ~/tentacles/mktg-team/my-monitor/
 ```
 
 ## Contract-First Design

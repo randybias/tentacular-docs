@@ -5,6 +5,8 @@ description: Tentacular manages state across three synchronized layers — Git, 
 
 Tentacular manages state across three synchronized layers. Understanding this model is key to disaster recovery, agent continuity, and debugging.
 
+![Three-Layer Model — Git is the system of record](/tentacular-docs/diagrams/three-layer-model.drawio.svg)
+
 ## The Three Layers
 
 ### 1. Git (System of Record)

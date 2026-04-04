@@ -3,36 +3,36 @@ title: Enclaves
 description: The enclave — Tentacular's primary abstraction for team-scoped workflow environments
 ---
 
-An enclave is the primary organizational unit in Tentacular. It binds a Slack channel, a Kubernetes namespace, shared infrastructure services, and team membership into a single governed unit. When a team works in Tentacular, they work inside an enclave.
+An enclave is a team's private workspace for building and running automated workflows. It's where your Slack channel, your team's workflows, shared services like databases and storage, and your team membership all come together as one governed unit. When a team works in Tentacular, they work inside an enclave.
 
 ## What Is an Enclave?
 
-An enclave is more than a namespace. Where a Kubernetes namespace is a cluster-level isolation boundary, an enclave is a complete workspace that a team owns, operates, and collaborates in — with an identity rooted in Slack rather than in Kubernetes.
+An enclave is a complete workspace that a team owns, operates, and collaborates in — with an identity rooted in Slack rather than in infrastructure. Your team's Slack channel *is* your enclave. The Kraken mediates all interaction, so the underlying infrastructure is an implementation detail that most users never see.
 
 ```
 Enclave = Slack channel
-        + Kubernetes namespace
-        + Exoskeleton services (Postgres, S3, optionally NATS/SPIRE)
-        + Team membership (owner + registered members)
-        + POSIX permission policy
+        + Isolated compute environment
+        + Shared services (database, object storage, optionally messaging/identity)
+        + Team membership (owner + members)
+        + Permission policy
 ```
 
-A Tentacular cluster hosts many enclaves. Each enclave is isolated from the others — tentacles in one enclave cannot see or access resources in another.
+A Tentacular deployment hosts many enclaves. Each enclave is isolated from the others — workflows in one enclave cannot see or access resources in another.
 
 ## Binding
 
-Each enclave is bound to exactly one Slack channel. The binding is what makes enclaves feel natural to enterprise teams: you work where you already are. The Kraken bot mediates all interaction, so the underlying Kubernetes namespace is an implementation detail that most users never see.
+Each enclave is bound to exactly one Slack channel. You work where you already are — no separate portal, no infrastructure console. The Kraken handles everything behind the scenes.
 
-| Enclave Component | Bound To |
-|-------------------|----------|
-| Identity | Slack channel name (slugified to DNS-1123) |
+| What | Where It Comes From |
+|------|---------------------|
+| Identity | Slack channel name |
 | Ownership | Slack channel owner |
-| Membership | Slack channel members who have completed OIDC sign-in |
-| Namespace | Kubernetes namespace with the same name as the enclave |
-| Storage | Postgres database + S3 bucket scoped to the enclave |
-| Network | Private exoskeleton services isolated within the namespace |
+| Membership | Channel members who have signed in |
+| Compute | Dedicated isolated environment per enclave |
+| Storage | Database + object storage scoped to the enclave |
+| Services | Private shared services isolated within the enclave |
 
-The Kubernetes namespace name is set at enclave creation from the Slack channel name and **never changes**, even if the channel is renamed. The display name follows the channel name, but the internal name is stable.
+The enclave's internal name is set at creation from the Slack channel name and **never changes**, even if the channel is later renamed.
 
 ## Roles
 
@@ -63,20 +63,22 @@ provision → active → frozen → deprovision
 | **Frozen** | Triggered when the Slack channel is archived. Running tentacles continue, but no new deployments are allowed and cron triggers are paused. Unarchiving the channel unfreezes the enclave. |
 | **Deprovisioned** | All tentacles stopped, all exoskeleton services cleaned up, namespace deleted. Irreversible. Requires explicit confirmation from the enclave owner. |
 
-## Exoskeleton Services
+## Shared Services (Exoskeleton)
 
-Every enclave is provisioned with a baseline set of shared infrastructure services called the exoskeleton:
+Every enclave is automatically provisioned with shared infrastructure services so teams don't have to set up databases, storage, or messaging themselves:
 
-| Service | Scope | Notes |
-|---------|-------|-------|
-| **Postgres** | One database per enclave, one schema per tentacle | Tentacles in the same enclave can share data by querying each other's schemas |
-| **S3/RustFS** | One bucket per enclave, one prefix per tentacle | Files are shared across tentacles within the enclave |
-| **NATS** | Optional. One subject hierarchy per enclave | Auto-provisioned when a tentacle contract declares a NATS dependency |
-| **SPIRE** | Optional. One trust domain per enclave | Auto-provisioned when a tentacle contract declares an identity dependency |
+| Service | What It Provides | Notes |
+|---------|-----------------|-------|
+| **Database** (Postgres) | One database per enclave, one schema per tentacle | Workflows in the same enclave can share data across schemas |
+| **Object Storage** (S3-compatible) | One bucket per enclave, one prefix per tentacle | Files are shared across workflows within the enclave |
+| **Messaging** (NATS) | Optional. Event-driven communication between workflows | Auto-provisioned when a workflow declares a messaging dependency |
+| **Workload Identity** (SPIRE) | Optional. Cryptographic identity for service-to-service auth | Auto-provisioned when a workflow declares an identity dependency |
 
-## Diagram
+## Diagrams
 
-See the enclave architecture diagram (`scratch/enclave-architecture.drawio`) for a visual overview of how enclaves, namespaces, exoskeleton services, and tentacles relate.
+![Enclave Model — Slack channel to Kubernetes namespace](/tentacular-docs/diagrams/enclave-model.drawio.svg)
+
+![Slack Operation Scoping — channel-scoped vs DM cross-enclave](/tentacular-docs/diagrams/slack-scoping.drawio.svg)
 
 ## State Across Three Layers
 

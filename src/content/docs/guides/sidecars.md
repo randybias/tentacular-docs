@@ -7,6 +7,8 @@ Tentacular's workflow engine runs TypeScript in a Deno sandbox. That covers most
 
 ## How It Works
 
+![Sidecar Pod Architecture](/tentacular-docs/diagrams/sidecar-pod-architecture.drawio.svg)
+
 When you declare a `sidecars:` block in `workflow.yaml`, the builder generates a multi-container Kubernetes Deployment. All containers share the same pod:
 
 - The **engine container** runs your Deno workflow nodes
@@ -288,3 +290,13 @@ For CPU-bound workloads, the default resource requests may be insufficient:
 - **ML inference**: depends heavily on model size; start with 1000m CPU / 1Gi memory
 
 Check `wf_health` for the workflow's resource utilization indicators. If the sidecar container is OOM killed, `wf_logs` will show `OOMKilled` in the container state.
+
+## Sidecar Scaffold Quickstarts
+
+The scaffold library includes production-ready sidecar examples you can use as starting points:
+
+- **[doc-converter](/tentacular-docs/reference/catalog/doc-converter/)** — Document format conversion using a pandoc sidecar
+- **[video-content-analyzer](/tentacular-docs/reference/catalog/video-content-analyzer/)** — Video analysis using an ffmpeg sidecar
+- **[video-frame-analyzer](/tentacular-docs/reference/catalog/video-frame-analyzer/)** — Frame extraction and analysis using an ffmpeg sidecar
+
+Start from one of these with `tntc scaffold init <scaffold> <name> --enclave <enclave>`.
