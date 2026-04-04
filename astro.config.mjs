@@ -35,6 +35,7 @@ export default defineConfig({
 						{ label: 'Security', slug: 'concepts/security' },
 						{ label: 'Exoskeleton', slug: 'concepts/exoskeleton' },
 						{ label: 'Agent Skill', slug: 'concepts/agent-skill' },
+						{ label: 'The Three Layers', slug: 'concepts/three-layers' },
 					],
 				},
 				{

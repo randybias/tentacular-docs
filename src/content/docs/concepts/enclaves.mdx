@@ -78,6 +78,20 @@ Every enclave is provisioned with a baseline set of shared infrastructure servic
 
 See the enclave architecture diagram (`scratch/enclave-architecture.drawio`) for a visual overview of how enclaves, namespaces, exoskeleton services, and tentacles relate.
 
+## State Across Three Layers
+
+An enclave exists simultaneously in three synchronized layers. Understanding this is important for disaster recovery and agent continuity:
+
+- **Git** — the `enclaves/<enclave-name>/` directory in your state repo holds enclave metadata (`enclave.yaml`) and tentacle source. Git is the authoritative source for rebuilding from scratch.
+- **Disk** — the agent's working copy at `~/tentacles/<enclave-name>/` where tentacles are built and modified before deployment.
+- **Kubernetes** — the live namespace and all its resources (Deployments, ConfigMaps, Secrets, annotations). The cluster is the runtime, not the source of truth.
+
+See [The Three Layers](/tentacular-docs/concepts/three-layers/) for the full model, including the layer mapping table and disaster recovery procedure.
+
+## Channel-Scoped Operations
+
+All operations on an enclave are channel-scoped: The Kraken only acts within the context of the channel it's operating in. A message in `#marketing-automations` cannot affect the `#infra-ops` enclave. This isolation is enforced at the MCP server level — each request carries the enclave identity derived from the channel context, and the authorization check verifies the caller has rights within that specific enclave.
+
 ## Relationship to Namespaces
 
 In earlier Tentacular releases, namespaces were the primary tenant boundary. Enclaves replace namespaces as the user-facing abstraction. Internally, each enclave still maps 1:1 to a Kubernetes namespace. All namespace lifecycle is handled through the enclave tools (`enclave_provision`, `enclave_deprovision`, etc.).

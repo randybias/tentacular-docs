@@ -92,8 +92,10 @@ tntc enclave info marketing-automations
 
 With the enclave active, deploy a tentacle into it using the `--enclave` flag. The enclave flag tells `tntc` which namespace to use and automatically applies the enclave's permission defaults.
 
+Tentacles for this enclave live at `~/tentacles/marketing-automations/<tentacle-name>/` on disk. This is the working copy in the [three-layer model](/tentacular-docs/concepts/three-layers/) — source is modified here, committed to Git, then deployed to the cluster.
+
 ```bash
-cd my-tentacle
+cd ~/tentacles/marketing-automations/my-tentacle
 tntc deploy --enclave marketing-automations
 ```
 
