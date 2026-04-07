@@ -36,6 +36,7 @@ export default defineConfig({
 						{ label: 'Exoskeleton', slug: 'concepts/exoskeleton' },
 						{ label: 'Agent Skill', slug: 'concepts/agent-skill' },
 						{ label: 'The Three Layers', slug: 'concepts/three-layers' },
+						{ label: 'Observability', slug: 'concepts/observability' },
 					],
 				},
 				{
@@ -58,6 +59,7 @@ export default defineConfig({
 						{ label: 'Testing', slug: 'guides/testing' },
 						{ label: 'gVisor Setup', slug: 'guides/gvisor-setup' },
 						{ label: 'NATS + SPIFFE Setup', slug: 'guides/nats-spiffe-setup' },
+						{ label: 'Bring Your Own Observability', slug: 'guides/byo-observability' },
 					],
 				},
 				{
