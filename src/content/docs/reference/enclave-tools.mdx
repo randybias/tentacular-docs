@@ -214,19 +214,19 @@ The enclave owner or a bearer-token caller can call this tool. Members cannot ca
 
 ### Ownership Transfer on Removal
 
-When `remove_members` is specified, the MCP server automatically transfers all tentacles owned by the removed members to the enclave owner. The response includes `transfer_count` and `failed_transfers` fields.
+When `remove_members` is specified, the MCP server automatically transfers all tentacles owned by the removed members to the enclave owner. The response includes a `transfers` array detailing each transfer.
 
 ### Return Value
 
 ```json
 {
-  "enclave": "marketing-automations",
-  "updated_fields": ["members", "channel_name"],
-  "member_count": 4,
-  "transfer_count": 2,
-  "failed_transfers": 0,
-  "status": "active",
-  "updated_at": "2026-04-03T15:00:00Z"
+  "name": "marketing-automations",
+  "updated": ["members"],
+  "enclave": { "owner": "alice@company.com", "members": ["bob@company.com"], "mode": "rwxrwx---", "status": "active" },
+  "transfers": [
+    { "tentacle_name": "video-analyzer", "from_owner": "carol@company.com", "to_owner": "alice@company.com", "success": true },
+    { "tentacle_name": "data-pipeline", "from_owner": "carol@company.com", "to_owner": "alice@company.com", "success": false, "error": "conflict" }
+  ]
 }
 ```
 

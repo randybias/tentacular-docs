@@ -212,7 +212,7 @@ The MCP server operates with scoped RBAC — it can only manage tentacular-relat
 
 ### Authorization
 
-When OIDC authentication is configured, the MCP server enforces POSIX-like permissions on workflow operations. Authorization is enabled by default. The default mode for new deployments is `group-read` (`rwxr-x---`): owner has full access, group members can read and execute.
+When OIDC authentication is configured, the MCP server enforces POSIX-like permissions on workflow operations. Authorization is enabled by default. The default mode for new deployments is `member-read` (`rwxr-x---`): owner has full access, enclave members can read and execute.
 
 To disable authorization entirely (kill switch), set the environment variable on the MCP server:
 

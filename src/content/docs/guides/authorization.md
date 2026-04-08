@@ -172,7 +172,7 @@ Enclave namespaces additionally carry:
 |------------|-------------|
 | `tentacular.io/enclave-owner` | Enclave owner email |
 | `tentacular.io/enclave-owner-sub` | Enclave owner OIDC subject identifier |
-| `tentacular.io/enclave-members` | JSON array of registered member emails |
+| `tentacular.io/enclave-members` | Comma-separated registered member emails |
 | `tentacular.io/channel-id` | Platform channel ID (e.g., Slack channel ID) |
 | `tentacular.io/channel-name` | Platform channel display name |
 
