@@ -12,7 +12,7 @@ The Tentacular MCP server exposes tools via the Model Context Protocol. These to
 | `enclave_provision` | Provision a new enclave (namespace + quota + policies + exoskeleton services) with owner and optional initial members |
 | `enclave_info` | Get enclave details including ownership, membership, quota, and exoskeleton service status |
 | `enclave_list` | List accessible enclaves, optionally filtered by caller email |
-| `enclave_sync` | Update enclave membership, status (freeze/unfreeze), or transfer ownership |
+| `enclave_sync` | Update enclave membership, status (freeze/unfreeze), permission mode, or transfer ownership |
 | `enclave_deprovision` | Permanently delete an enclave and all its resources (irreversible) |
 
 ## Workflow Lifecycle
@@ -23,7 +23,7 @@ The Tentacular MCP server exposes tools via the Model Context Protocol. These to
 | `wf_remove` | Remove a workflow's K8s resources. When cleanup is enabled, also runs unregistrars. |
 | `wf_list` | List all tentacular-managed workflows in a namespace |
 | `wf_status` | Get deployment status (replicas, conditions, image) |
-| `wf_describe` | Detailed workflow description including pods and events |
+| `wf_describe` | Detailed workflow description including metadata (nodes, edges, sidecars, dependencies, version, triggers), git provenance, and pod status |
 | `wf_run` | Trigger a deployed workflow via HTTP POST to `/run` |
 | `wf_restart` | Restart a workflow deployment (rolling restart) |
 | `wf_logs` | Get pod logs (snapshot, not streaming) |

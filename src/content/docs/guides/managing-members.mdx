@@ -7,25 +7,25 @@ Enclave membership is primarily managed through Slack — The Kraken watches cha
 
 ## Adding Members
 
-### Via Slack (Recommended)
+Joining a Slack channel does not automatically grant enclave membership. New channel members start as **visitors**. The enclave owner must explicitly add them.
 
-Invite the person to the enclave's Slack channel:
+### Via The Kraken (Recommended)
 
-```
-/invite @alice
-```
-
-The Kraken detects the `member_joined_channel` event and sends an OIDC sign-in link. Once Alice completes sign-in, she is registered as an enclave member automatically.
-
-The channel owner is notified:
+The enclave owner mentions the user in a Kraken command:
 
 ```
-Alice has joined and verified her identity. She is now a member of this workspace.
+@kraken add @alice
+```
+
+The Kraken resolves Alice's Slack profile email, confirms it matches an OIDC identity, and adds her as a member via `enclave_sync`. The channel is notified:
+
+```
+alice@company.com has been added as a member of this enclave.
 ```
 
 ### Via CLI
 
-If The Kraken is not available or you need to add a member who is already in the channel but hasn't registered:
+If The Kraken is not available:
 
 ```bash
 tntc enclave sync <enclave-name> --add-member alice@company.com
@@ -35,19 +35,23 @@ This requires the caller to be the enclave owner or a platform operator. The add
 
 ## Removing Members
 
-### Via Slack (Recommended)
+Members are removed either explicitly by the owner or automatically when they leave the channel. In both cases, tentacles owned by the departing member are automatically transferred to the enclave owner.
 
-Remove the person from the Slack channel:
-
-```
-/remove @alice
-```
-
-The Kraken detects the `member_left_channel` event and removes Alice from the enclave. Her tentacles are transferred to the enclave owner. The channel is notified:
+### Via The Kraken (Recommended)
 
 ```
-Alice has left the workspace. Her automations [list] have been transferred to @owner.
+@kraken remove @alice
 ```
+
+The Kraken removes Alice from the enclave. Her tentacles are transferred to the enclave owner. The channel is notified:
+
+```
+alice@company.com has been removed from this enclave. 2 tentacles were transferred to the enclave owner.
+```
+
+### Automatic Removal
+
+When a member leaves the Slack channel (`member_left_channel` event), The Kraken automatically removes them and transfers their tentacles. No action is needed from the owner.
 
 ### Via CLI
 
@@ -55,7 +59,7 @@ Alice has left the workspace. Her automations [list] have been transferred to @o
 tntc enclave sync <enclave-name> --remove-member alice@company.com
 ```
 
-Tentacles owned by the removed member transfer to the enclave owner. The transfer is logged in the audit trail.
+Tentacles owned by the removed member transfer to the enclave owner. The transfer count is included in the response.
 
 ## Transferring Tentacle Ownership
 
@@ -93,12 +97,20 @@ The enclave owner can change who can do what in the enclave at any time.
 
 ### Via The Kraken
 
+Use the `set mode` command with a preset name:
+
 ```
-@kraken let anyone in this channel see what's running
+@kraken set mode open-read
 ```
 
 ```
-@kraken lock down this workspace so only our team can access it
+@kraken set mode private
+```
+
+The Kraken also understands natural language:
+
+```
+@kraken let anyone in this channel see what's running
 ```
 
 ### Via CLI
@@ -165,6 +177,24 @@ The CLI also requires explicit confirmation (`--confirm` flag or an interactive 
 :::caution
 Deprovisioning deletes the Kubernetes namespace and all resources within it, including Postgres data and S3 objects scoped to the enclave. Ensure any important data is backed up before proceeding.
 :::
+
+## Checking Your Role
+
+Any user can check their role in the enclave:
+
+```
+@kraken whoami
+```
+
+The Kraken responds with your role (owner, member, or visitor) and your email.
+
+To see all members:
+
+```
+@kraken members
+```
+
+This lists the owner, all members, and the current access level in plain language.
 
 ## Auditing Membership
 

@@ -62,7 +62,7 @@ Think of it as a filesystem:
 | Member | Registered enclave members | Users who joined the Slack channel and completed OIDC sign-in |
 | Other | Any other authenticated user | Authenticated users who are not the owner or a registered member |
 
-IdP group membership (Keycloak groups, LDAP groups) is not used for authorization. The `tentacular.io/group` annotation is deprecated — enclave membership is the authorization primitive.
+IdP group membership (Keycloak groups, LDAP groups) is not used for authorization. Enclave membership (comma-separated emails in the `tentacular.io/enclave-members` annotation) is the authorization primitive.
 
 ### Permission Types
 
@@ -134,7 +134,7 @@ Enclaves carry the same permission model as tentacles and serve as the tenant bo
 When `enclave_provision` is called, the caller becomes the enclave owner. The enclave namespace receives annotations:
 
 - `tentacular.io/owner-sub`, `owner-email`, `owner-name` — from OIDC identity
-- `tentacular.io/enclave-members` — JSON array of registered member emails
+- `tentacular.io/enclave-members` — comma-separated list of registered member emails
 - `tentacular.io/mode` — permission mode string (default: `rwxrwx---`)
 
 The `tentacular.io/group` annotation is deprecated and not used for authorization.
@@ -176,7 +176,7 @@ Enclave namespaces additionally carry:
 | `tentacular.io/channel-id` | Platform channel ID (e.g., Slack channel ID) |
 | `tentacular.io/channel-name` | Platform channel display name |
 
-The `tentacular.io/group` annotation is deprecated. It may be present on pre-enclave deployments but is not used by the authorization evaluator.
+The `tentacular.io/group` annotation is no longer written. It may be present on pre-enclave deployments but is ignored by the authorization evaluator.
 
 #### Update Tracking Annotations (stamped on UPDATE)
 
@@ -220,7 +220,7 @@ The old `tentacular.dev/*` annotations are no longer recognized. Existing deploy
 
 ### From Group-Based Authorization
 
-The `tentacular.io/group` annotation and the `--group`/`--share` group flag are deprecated. Authorization now uses enclave membership (owner/member/other) instead of IdP group assignment. Existing deployments with `tentacular.io/group` set will have the annotation ignored by the authorization evaluator — access is controlled by enclave membership only.
+The `tentacular.io/group` annotation is no longer written by the builder. The `--group` flag has been removed. Authorization uses enclave membership (owner/member/other) exclusively. Existing deployments with `tentacular.io/group` set will have the annotation ignored by the authorization evaluator.
 
 ## CLI Commands
 
@@ -302,7 +302,7 @@ kubectl annotate ns my-enclave \
   tentacular.io/owner-sub=<user-uuid> \
   tentacular.io/owner-email=user@example.com \
   tentacular.io/owner-name="User Name" \
-  tentacular.io/enclave-members='["member1@example.com","member2@example.com"]' \
+  tentacular.io/enclave-members='member1@example.com,member2@example.com' \
   tentacular.io/mode=rwxrwx---
 ```
 
