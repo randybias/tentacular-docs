@@ -7,17 +7,31 @@ Tentacular is designed for teams, not just individuals. Every enclave is a share
 
 ## Enclave Membership
 
-Enclave membership is derived from Slack. When a user joins the Slack channel that backs an enclave and completes OIDC sign-in, they become a registered member of that enclave. When they leave the channel, they are removed automatically.
+Enclave membership is managed through Slack channel events and owner commands. Joining a Slack channel does **not** automatically grant membership — the new user starts as a **visitor**. The enclave owner must explicitly add them as a member.
 
 There are three roles in every enclave:
 
 | Role | How You Get It | What It Means |
 |------|---------------|---------------|
 | **Owner** | You are the Slack channel owner | Administrative control over the enclave and everything in it |
-| **Member** | You joined the channel and completed OIDC sign-in | Collaborative access, scoped by the enclave's permission preset |
-| **Other** | You are authenticated but not an owner or member | Visitor access, scoped by the enclave's permission preset |
+| **Member** | The owner added you via `@kraken add @user` or CLI | Collaborative access, scoped by the enclave's permission preset |
+| **Visitor** | You joined the channel but have not been added as a member | Limited access based on the enclave's "other" permission bits (typically none) |
 
 A user can be a member of multiple enclaves simultaneously, with different roles in each. OIDC identity (your email and subject identifier) is the same across all enclaves, but your role varies per enclave.
+
+### Channel Events and Enclave State
+
+Slack channel lifecycle events automatically drive enclave state:
+
+| Slack Event | Enclave Effect |
+|-------------|---------------|
+| User joins channel | User becomes a visitor (no automatic membership) |
+| User leaves channel | User is removed from members; their tentacles transfer to the enclave owner |
+| Channel archived | Enclave frozen (no new deploys, cron paused, existing tentacles keep running) |
+| Channel unarchived | Enclave unfrozen |
+| Channel renamed | Display name updated; enclave slug is immutable |
+
+The Kraken also runs periodic drift detection to reconcile Slack channel membership with enclave annotations, catching any events that were missed.
 
 ## Permission Model
 
@@ -68,18 +82,28 @@ The person who deploys a tentacle is its owner. Tentacle ownership matters when 
 | Deployer is owner | Set at deploy time, stored in `tentacular.io/owner` annotation |
 | Owner can update their tentacle | Subject to the tentacle's mode bits |
 | Enclave owner is superuser | Can update or remove any tentacle, regardless of tentacle mode |
-| Ownership transfers on member leave | When a member leaves, their tentacles transfer to the enclave owner |
+| Ownership transfers on member removal | When a member is removed (via `@kraken remove` or leaving the channel), their tentacles automatically transfer to the enclave owner |
 | Enclave owner can transfer ownership | To any current member, via The Kraken or `tntc` |
 
 ## Natural Language Governance
 
-Teams interact with permissions through natural language, not mode strings or CLI flags. The Kraken translates intent into the right permission changes.
+Teams interact with permissions through natural language, not mode strings or CLI flags. The Kraken provides structured owner commands alongside natural language understanding.
+
+### Kraken Owner Commands
+
+| Command | What It Does | Who Can Run |
+|---------|-------------|------------|
+| `@kraken add @user` | Adds the mentioned user as an enclave member | Owner only |
+| `@kraken remove @user` | Removes the user; transfers their tentacles to the owner | Owner only |
+| `@kraken set mode <preset>` | Changes the enclave's permission preset | Owner only |
+| `@kraken members` | Lists owner, members, and current access level | Anyone |
+| `@kraken whoami` | Shows your role in this enclave (owner, member, or visitor) | Anyone |
 
 **Examples of what users say:**
 - "Lock down this enclave so only our team can see it" → Kraken sets `member-edit`
 - "Let anyone in this channel see what's running" → Kraken sets `open-read`
 - "Transfer the price-monitor tentacle to Bob" → Kraken calls `enclave_chown`
-- "Carol is leaving — make sure she loses access" → Kraken removes Carol from enclave-members when she leaves the channel
+- When Carol leaves the channel, Kraken automatically removes her and transfers her tentacles to the owner
 
 Platform operators and advanced users can set permissions directly with `tntc`:
 

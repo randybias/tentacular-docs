@@ -44,7 +44,7 @@ Every enclave has three principal classes, following a POSIX-like model:
 | **Member** | Registered channel members who have completed OIDC sign-in | Can deploy, run, and manage their own tentacles within the enclave. Exact permissions depend on the enclave's mode preset. |
 | **Other** | Authenticated users who are not the owner or a registered member | Visitors. Access depends on the enclave's mode preset — typically read-only or none at all. |
 
-Membership is managed through Slack. When a user joins the channel and completes OIDC sign-in, The Kraken registers them as a member. When they leave the channel, they are removed automatically.
+Membership is managed through Slack. Joining the channel makes you a **visitor** — the enclave owner must explicitly add you as a member via `@kraken add @user`. When a member leaves the channel, they are removed automatically and their tentacles transfer to the enclave owner.
 
 See [Team Collaboration](/tentacular-docs/concepts/team-collaboration/) for the full permission model.
 

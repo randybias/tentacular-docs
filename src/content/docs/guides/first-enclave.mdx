@@ -60,29 +60,30 @@ tntc enclave provision --name marketing-automations \
 ```
 :::
 
-## Step 3: Sign In (All Team Members)
+## Step 3: Add Team Members
 
-Each person in the channel — including you — needs to complete OIDC sign-in once. This links their Slack identity to their cluster identity and registers them as an enclave member.
-
-Click the sign-in link The Kraken posted. A browser window opens, prompts for your company SSO credentials, and closes. The Kraken posts a confirmation in the channel when each person completes sign-in.
-
-After everyone has signed in:
-
-```
-Everyone's verified. You're all set up. What would you like to automate?
-```
-
-## Step 4: Invite Team Members to the Channel
-
-If you need to add more people after initial setup, invite them to the Slack channel the normal way:
+After the enclave is provisioned, invite people to the Slack channel:
 
 ```
 /invite @bob @carol
 ```
 
-The Kraken detects the new members and sends them sign-in links automatically. Once they complete OIDC sign-in, they're registered as enclave members.
+Joining the channel makes them **visitors**. To grant full access, the enclave owner adds them as members:
+
+```
+@kraken add @bob
+@kraken add @carol
+```
+
+The Kraken resolves each user's Slack email, confirms their OIDC identity, and registers them as enclave members.
 
 To verify the current member list:
+
+```
+@kraken members
+```
+
+Or via CLI:
 
 ```bash
 tntc enclave info marketing-automations
@@ -134,7 +135,7 @@ Or ask The Kraken:
 |---------|-------|-----|
 | "I can only initialize enclaves for channel owners" | You are not the Slack channel owner | Transfer channel ownership or ask the owner to run the initialization |
 | `enclave not found` on deploy | Enclave name or namespace doesn't match | Run `tntc enclave list` to see available enclaves |
-| Member not appearing after invite | OIDC sign-in not completed | Ask the member to click the sign-in link The Kraken posted |
+| Member not appearing after invite | Owner has not added them yet | Run `@kraken add @user` to add them as a member |
 | Tentacle deploy fails with "enclave frozen" | Channel was archived | Unarchive the Slack channel to unfreeze the enclave |
 
 ## Next Steps

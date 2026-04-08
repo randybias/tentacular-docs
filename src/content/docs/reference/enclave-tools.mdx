@@ -204,24 +204,29 @@ The enclave owner or a bearer-token caller can call this tool. Members cannot ca
 |-----------|------|----------|-------------|
 | `name` | string | Yes | Enclave name. |
 | `members` | string[] | No | Full replacement member list (OIDC emails). Replaces the existing member list entirely when provided. |
-| `add_members` | string[] | No | OIDC emails to add to the current member list. |
-| `remove_members` | string[] | No | OIDC emails to remove from the current member list. |
-| `owner_email` | string | No | New owner email. Updates `tentacular.io/enclave-owner`. |
-| `owner_sub` | string | No | New owner OIDC subject identifier. |
+| `add_members` | string[] | No | OIDC emails to add to the current member list (CSV format). |
+| `remove_members` | string[] | No | OIDC emails to remove from the current member list (CSV format). When members are removed, their tentacles are automatically transferred to the enclave owner. |
+| `new_owner` | string | No | New owner email (must be a current member). Updates `tentacular.io/enclave-owner`. |
 | `new_channel_name` | string | No | Updated display name (after Slack channel rename). Does not change the K8s namespace name. |
 | `new_status` | string | No | New enclave status: `"active"` or `"frozen"`. |
-| `mode` | string | No | New permission preset or mode string. |
+| `new_mode` | string | No | New permission mode (9-char rwx string, e.g. `rwxrwx---`). Updates `tentacular.io/mode`. |
 | `quota_preset` | string | No | New quota preset. Applies updated resource quota to the namespace. |
+
+### Ownership Transfer on Removal
+
+When `remove_members` is specified, the MCP server automatically transfers all tentacles owned by the removed members to the enclave owner. The response includes a `transfers` array detailing each transfer.
 
 ### Return Value
 
 ```json
 {
-  "enclave": "marketing-automations",
-  "updated_fields": ["members", "channel_name"],
-  "member_count": 4,
-  "status": "active",
-  "updated_at": "2026-04-03T15:00:00Z"
+  "name": "marketing-automations",
+  "updated": ["members"],
+  "enclave": { "owner": "alice@company.com", "members": ["bob@company.com"], "mode": "rwxrwx---", "status": "active" },
+  "transfers": [
+    { "tentacle_name": "video-analyzer", "from_owner": "carol@company.com", "to_owner": "alice@company.com", "success": true },
+    { "tentacle_name": "data-pipeline", "from_owner": "carol@company.com", "to_owner": "alice@company.com", "success": false, "error": "conflict" }
+  ]
 }
 ```
 
@@ -231,11 +236,14 @@ The enclave owner or a bearer-token caller can call this tool. Members cannot ca
 # Add a member manually
 tntc enclave sync marketing-automations --add-member dave@company.com
 
-# Remove a member
+# Remove a member (tentacles transfer to enclave owner)
 tntc enclave sync marketing-automations --remove-member carol@company.com
 
 # Transfer ownership
-tntc enclave sync marketing-automations --owner bob@company.com --owner-sub auth0|def456
+tntc enclave sync marketing-automations --new-owner bob@company.com
+
+# Change permission mode
+tntc enclave sync marketing-automations --new-mode rwxrwxr--
 
 # Freeze the enclave
 tntc enclave sync marketing-automations --status frozen
