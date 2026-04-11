@@ -95,10 +95,13 @@ contract:
 nodes:
   fetch-video:
     path: ./nodes/fetch-video.ts
+    description: "Downloads video from URL to shared volume"
   extract-frames:
     path: ./nodes/extract-frames.ts
+    description: "Calls ffmpeg sidecar to extract frames at configured FPS"
   analyze-frames:
     path: ./nodes/analyze-frames.ts
+    description: "Runs Claude Vision analysis on extracted frames"
 
 edges:
   - from: fetch-video

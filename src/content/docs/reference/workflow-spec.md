@@ -23,10 +23,13 @@ triggers:
 nodes:
   fetch-data:
     path: ./nodes/fetch-data.ts
+    description: "Fetches raw data from configured sources"
   process:
     path: ./nodes/process.ts
+    description: "Transforms and enriches the raw data"
   notify:
     path: ./nodes/notify.ts
+    description: "Sends processed results via notification channel"
 
 edges:
   - from: fetch-data
@@ -75,7 +78,7 @@ contract:
 | `version` | string | Yes | Semantic version (quoted to prevent YAML number parsing). |
 | `description` | string | No | Human-readable description. |
 | `triggers` | array | No | How the tentacle is initiated. Defaults to manual only. |
-| `nodes` | map | Yes | Named nodes with paths to TypeScript files. At least one required. |
+| `nodes` | map | Yes | Named nodes with `path` and `description`. At least one required. |
 | `edges` | array | Yes | Directed edges between nodes forming a DAG. |
 | `config` | map | No | Workflow-level configuration passed to nodes via `ctx.config`. |
 | `deployment` | map | No | Deployment-specific settings. |
@@ -97,9 +100,10 @@ Named cron triggers send `{"trigger": "<name>"}` as input to root nodes, enablin
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `path` | string | Yes | Relative path to the TypeScript node file |
+| `description` | string | Yes | Human-readable description of what this node does |
 | `capabilities` | map | No | Legacy per-node capabilities (deprecated in favor of contract) |
 
-Node names must be kebab-case and unique within the tentacle.
+Node names must be kebab-case and unique within the tentacle. Every node must include a `description` field. Missing descriptions are rejected by both `tntc validate` (client-side) and `wf_apply` (server-side).
 
 ## Edges
 
@@ -182,6 +186,7 @@ For a tentacle with edges `A→B`, `A→C`, `B→D`, `C→D`:
 - At least one node must be defined
 - All edge references must point to defined nodes
 - No self-loops or cycles in the DAG
+- Every node must have a `description` field (enforced client-side and server-side)
 - Trigger types must be one of: `manual`, `cron`, `queue`
 - Cron triggers must include a `schedule` field
 - Queue triggers must include a `subject` field
