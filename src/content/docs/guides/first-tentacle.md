@@ -49,10 +49,13 @@ triggers:
 nodes:
   fetch:
     path: ./nodes/fetch.ts
+    description: "Fetches recent repos from the GitHub API"
   summarize:
     path: ./nodes/summarize.ts
+    description: "Summarizes repo metadata into a digest"
   notify:
     path: ./nodes/notify.ts
+    description: "Sends the digest to Slack via webhook"
 
 edges:
   - from: fetch

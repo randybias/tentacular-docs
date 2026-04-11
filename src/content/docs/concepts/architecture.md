@@ -200,10 +200,13 @@ triggers:
 nodes:
   fetch-repos:
     path: ./nodes/fetch-repos.ts
+    description: "Fetches recent repos from GitHub API"
   summarize:
     path: ./nodes/summarize.ts
+    description: "Produces a text summary of repo activity"
   notify:
     path: ./nodes/notify.ts
+    description: "Sends the summary via configured notification channel"
 edges:
   - from: fetch-repos
     to: summarize
