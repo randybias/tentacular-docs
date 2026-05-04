@@ -46,7 +46,7 @@ default_env: dev
 
 environments:
   dev:
-    kubeconfig: ~/dev-secrets/kubeconfigs/dev-cluster.kubeconfig
+    kubeconfig: ~/.kube/configs/dev-cluster.kubeconfig
     namespace: tentacular-dev
     image: ghcr.io/yourorg/tentacular-engine:latest
     runtime_class: gvisor
@@ -54,7 +54,7 @@ environments:
     mcp_token_path: ~/.tentacular/mcp-token
 
   staging:
-    kubeconfig: ~/dev-secrets/kubeconfigs/staging.kubeconfig
+    kubeconfig: ~/.kube/configs/staging.kubeconfig
     namespace: tentacular-staging
     image: ghcr.io/yourorg/tentacular-engine:latest
     runtime_class: gvisor
@@ -62,7 +62,7 @@ environments:
     mcp_token_path: ~/.tentacular/mcp-token-staging
 
   prod:
-    kubeconfig: ~/dev-secrets/kubeconfigs/prod.kubeconfig
+    kubeconfig: ~/.kube/configs/prod.kubeconfig
     namespace: tentacular-prod
     image: ghcr.io/yourorg/tentacular-engine:latest
     runtime_class: gvisor
